@@ -1,15 +1,17 @@
 from typing import Type, TypeVar
 
-from injection.providers.transient import Transient
+from injection.providers.base_factory import BaseFactoryProvider
 
 T = TypeVar("T")
 
 
-class Singleton(Transient[T]):
+class Singleton(BaseFactoryProvider[T]):
     """Global singleton object created only once"""
 
     def __init__(self, type_cls: Type[T], *a, **kw):
         super().__init__(type_cls, *a, **kw)
+        self._instance = None
+        self.type_cls = type_cls
 
     def _resolve(self, *args, **kwargs) -> T:
         """https://python-dependency-injector.ets-labs.org/providers/factory.html

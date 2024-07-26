@@ -23,7 +23,6 @@ class Redis:
         self.port = port
 
     def get(self, key):
-        print(f"Getting {key}")
         return key
 
 
@@ -32,7 +31,7 @@ class Service:
         self.redis_client = redis_client
 
     def do_smth(self):
-        print("Doing smth")
+        return "Doing smth"
 
 
 class SomeService:
@@ -42,10 +41,13 @@ class SomeService:
         self.svc = svc
 
     def do_smth(self):
-        print("Doing smth 2")
+        return "Doing smth 2"
 
 
 def func(a, *, c: str, nums: int, d: dict):
+    _ = a
+    _ = c
+    _ = d
     return 5555, nums
 
 
@@ -84,11 +86,16 @@ def func_with_injections(
     svc1=Provide["service"],
     svc2=Provide["some_service"],
     numms=Provide[Container.num],
-    partial_callable_param=Provide["partial_callable"],
-    # coroutine_param=Provide['coroutine_provider']
+    partial_callable_param=Provide[Container.partial_callable],
 ):
+    _ = sfs
+    _ = ddd
+    _ = numms
+
     redis.get(1)
     svc1.do_smth()
     svc2.do_smth()
+
     partial_callable_result = partial_callable_param(d={"eparam": "eeeee"})
+    _ = partial_callable_result
     return redis.url
