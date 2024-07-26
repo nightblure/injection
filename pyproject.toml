@@ -21,10 +21,9 @@ dependencies = []
 readme = "README.md"
 
 [project.urls]
-Homepage = "https://github.com/pypa/sampleproject"
+Homepage = "https://pypi.org/project/deps-injection/"
 Issues = "https://github.com/nightblure/injection/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc"
 Changelog = "https://github.com/nightblure/injection/releases"
-Homepage = "https://github.com/nightblure/injection"
 Documentation = "https://injection.readthedocs.io/latest/"
 Repository = "https://github.com/nightblure/injection.git"
 
