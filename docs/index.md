@@ -19,9 +19,9 @@
 
 .. toctree::
     :maxdepth: 1
-    :caption: For developers
+    :caption: DEV section
 
+    dev/migration-from-dependency-injector
     dev/contributing
-
 
 ```

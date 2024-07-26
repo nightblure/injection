@@ -29,7 +29,10 @@ Easy dependency injection for all, works with Python 3.8-3.12. Main features and
 * **multiple containers**;
 * **overriding** dependencies for tests without wiring;
 * **100%** code coverage and very simple code;
-* good [documentation](https://injection.readthedocs.io/latest/).
+* good [documentation](https://injection.readthedocs.io/latest/);
+* intuitive and almost identical api with [dependency-injector](https://github.com/ets-labs/python-dependency-injector),
+which will allow you to easily migrate to injection
+(see [migration from dependency injector](https://injection.readthedocs.io/latest/introduction/migration-from-dependency-injector.html));
 
 ---
 
