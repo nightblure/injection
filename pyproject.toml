@@ -76,11 +76,35 @@ ignore = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "tests/test_integrations/**.py" = ["ANN001", "ANN201"]
-"tests/**.py" = ["ALL"] # ["S101", "PLR2004", "PT011", "C409", "B017"]
+"tests/**.py" = ["S101", "PLR2004", "PT011", "C409", "B017"]
 "tests/test_integrations/test_drf/**.py" = ["E501", "S105", "EM101", "TRY003"]
 "tests/container_objects.py" = ["PLR0913", "ARG001"]
 "src/injection/__init__.py" = ["F401"]
 "docs/conf.py" = ["A001"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning:pkg_resources.*",
+]
+
+[tool.hatch.version]
+path = "src/injection/__version__.py"
+
+# FOR LOCAL TESTS (make test)
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.hatch-test]
+randomize = true
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/injection"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/injection"]
+
 
 [tool.pdm]
 distribution = false
@@ -106,29 +130,6 @@ test = [
     "litestar",
     "flask",
 ]
-
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-asyncio_mode = "auto"
-filterwarnings = [
-    "ignore::DeprecationWarning:pkg_resources.*",
-]
-
-[tool.hatch.version]
-path = "src/injection/__version__.py"
-
-# FOR LOCAL TESTS (make test)
-[[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
-[tool.hatch.envs.hatch-test]
-randomize = true
-
-[tool.hatch.build.targets.sdist]
-only-include = ["src/injection"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/injection"]
 
 [build-system]
 requires = ["hatchling"]
