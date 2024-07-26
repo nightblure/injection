@@ -38,4 +38,4 @@ tag:
 	git tag -a ${v} -m "${v}"
 
 push-tag:
-	git push origin ${v} --force
+	git push origin ${v}
