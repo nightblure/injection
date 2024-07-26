@@ -12,7 +12,7 @@ lint-ci:
 	pre-commit install && pre-commit run --color=always --all-files
 
 deps:
-	pdm run pytest pre-commit hatch==1.12.0
+	pdm install
 
 build:
 	rm -r -f dist && pdm run hatch build

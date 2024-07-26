@@ -43,7 +43,8 @@ jobs:
             ./pdm.lock
 
       - name: Build package
-        run: pdm run hatch version "${{ github.ref_name }}" && make build
+#        run: pdm run hatch version "${{ github.ref_name }}" && make build
+        run: make build
 
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
