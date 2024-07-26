@@ -10,7 +10,7 @@ The public API of this framework is almost completely identical to
 because the author found it successful and understandable.
 In addition, this will provide an easy migration to the current framework with
 [Dependency Injector](https://python-dependency-injector.ets-labs.org/index.html#)
-(see [migration from Dependency Injector](https://injection.readthedocs.io/latest/introduction/migration-from-dependency-injector.html)).
+(see [migration from Dependency Injector](https://injection.readthedocs.io/latest/dev/migration-from-dependency-injector.html)).
 
 ## Features
 

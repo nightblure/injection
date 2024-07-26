@@ -34,7 +34,7 @@ Easy dependency injection for all, works with Python 3.8-3.12. Main features and
 * good [documentation](https://injection.readthedocs.io/latest/);
 * intuitive and almost identical api with [dependency-injector](https://github.com/ets-labs/python-dependency-injector),
 which will allow you to easily migrate to injection
-(see [migration from dependency injector](https://injection.readthedocs.io/latest/introduction/migration-from-dependency-injector.html));
+(see [migration from dependency injector](https://injection.readthedocs.io/latest/dev/migration-from-dependency-injector.html));
 
 ---
 
