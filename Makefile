@@ -34,4 +34,5 @@ docs-deps:
 
 # example: make tag v="v3.9.2", TAG MUST INCLUDE v
 tag:
+	pdm run hatch version "${v}"
 	git tag -a ${v} -m "${v}" && git push origin ${v}
