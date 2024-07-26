@@ -15,7 +15,7 @@ and eliminates its shortcomings, which will make migrating very easy.
 [Injection](https://github.com/nightblure/injection) **does not implement** **some** [providers](https://python-dependency-injector.ets-labs.org/providers/index.html)
 (Resource, List, Dict, Aggregate and etc.) because the developer considered them to be **rarely used** in practice.
 In this case, you don't need to do the migration, but if you really want to use my package,
-I'd love to see your [issues](https://github.com/nightblure/injection/issues) and/or [MR](https://github.com/nightblure/injection/pulls)!
+I'd love to see your [issues](https://github.com/nightblure/injection/issues) and/or [merge requests](https://github.com/nightblure/injection/pulls)!
 
 ---
 
@@ -23,8 +23,11 @@ To **migrate**, follow these **steps**:
 1. **Replace imports**:
 * `from dependency_injector import providers` -> `from injection import providers`;
 
-* `from dependency_injector.wiring import Provide, inject` -> `from injection import Provide, inject`
+* `from dependency_injector.wiring import Provide, inject` -> `from injection import Provide, inject`;
 
-* `from dependency_injector.containers import DeclarativeContainer` -> `from injection import DeclarativeContainer`
+* `from dependency_injector.containers import DeclarativeContainer` -> `from injection import DeclarativeContainer`;
 
-2. **Replace method call**: `some_container.override_providers(**overrides)` -> ``some_container.override_providers(overrides)``
+2. **Replace argument unpacking in the `override_providers` method call with direct argument passing**: `some_container.override_providers(**overrides)` -> `some_container.override_providers(overrides)`;
+
+
+3. **Replace the Factory provider with Transient**: `providers.Factory` -> `providers.Transient`'.
