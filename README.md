@@ -1,6 +1,6 @@
 # Injection
 
-![PyPI - Version](https://img.shields.io/pypi/v/deps-injection)
+![PyPI - Version](https://img.shields.io/pypi/v/deps-injection?label=pypi%20version)
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/deps-injection)
 
