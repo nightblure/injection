@@ -38,4 +38,4 @@ tag:
 	git tag -a ${v} -m "${v}"
 
 push-tag:
-	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
+	git push origin ${v} --force
