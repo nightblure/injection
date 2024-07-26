@@ -24,6 +24,3 @@
 * support **Python 3.8-3.12**;
 * works with **FastAPI, Flask, Litestar** and **Django REST Framework**;
 * **no third-party dependencies**;
-
-
-todo: sonarcloud badges OR codeclimate badge
