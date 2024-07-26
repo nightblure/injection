@@ -8,9 +8,6 @@ from tests.test_integrations.test_fastapi.handlers import router
 @asynccontextmanager
 async def lifespan_handler(_):
     yield
-    # Container.wire()
-    # yield
-    # Container.unwire()
 
 
 def create_app():
