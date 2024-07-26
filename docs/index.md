@@ -14,8 +14,13 @@
     :maxdepth: 1
     :caption: Providers
 
+    providers/transient
+    providers/callable
+    providers/partial_callable
+    providers_coroutine
     providers/singleton
     providers/object
+    providers/provided_instance
 
 .. toctree::
     :maxdepth: 1
