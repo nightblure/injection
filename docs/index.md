@@ -7,7 +7,7 @@
    :maxdepth: 1
    :caption: Introduction
 
-   introduction/key_features
+   introduction/concepts-and-key_features
    introduction/installation
 
 .. toctree::
