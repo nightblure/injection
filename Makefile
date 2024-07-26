@@ -1,0 +1,37 @@
+test:
+	pdm run hatch test --cover --all
+
+tests-ci:
+	pdm run pytest tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
+
+lint:
+	pdm run pre-commit install
+	pdm run pre-commit run --all-files
+
+lint-ci:
+	pre-commit install && pre-commit run --color=always --all-files
+
+deps:
+	pdm run pytest pre-commit hatch==1.12.0
+
+build:
+	rm -r -f dist && pdm run hatch build
+
+hatch-env-prune:
+	pdm run hatch env prune
+
+docs-server:
+	rm -rf docs/build
+	pdm run sphinx-autobuild docs docs/build
+
+build-docs:
+	rm -rf docs/build/* && rm -rf docs/build/{*,.*}
+	pdm run sphinx-build docs docs/build
+
+# https://pdm-project.org/latest/usage/dependency/#select-a-subset-of-dependency-groups-to-install
+docs-deps:
+	pdm install -G docs
+
+# example: make tag v="v3.9.2", TAG MUST INCLUDE v
+tag:
+	git tag -a ${v} -m "${v}" && git push origin ${v}

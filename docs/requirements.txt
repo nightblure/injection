@@ -1,0 +1,5 @@
+sphinx==7.*
+sphinx-rtd-theme==2.*
+sphinx-autobuild
+sphinx-copybutton==0.*
+myst-parser==3.*

@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 'v4.5.0'
+    hooks:
+      - id: check-toml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: pretty-format-json
+        args:
+          - '--autofix'
+      - id: trailing-whitespace
+        exclude: '.bumpversion.cfg'
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 'v0.5.4'
+    hooks:
+      - id: ruff
+        entry: ruff check src tests --fix --exit-non-zero-on-fix --show-fixes --config pyproject.toml
+
+      - id: ruff-format
+        entry: ruff format src tests --config pyproject.toml

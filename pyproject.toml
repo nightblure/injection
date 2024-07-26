@@ -1,0 +1,154 @@
+[project]
+name = "deps-injection" # SHOULD BE SAME WITH PROJECT NAME IN PYPI PUBLISHER@
+requires-python = ">=3.8"
+license = { text = "MIT" }
+dynamic = ["version"]
+authors = [
+    { name = "Ivan Belyaev", email = "vanobel159@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython"
+]
+keywords = ["dependency", "injector", "di", "injection"]
+description = "Easy dependency injection"
+dependencies = []
+readme = "README.md"
+
+#[project.urls]
+#Homepage = "https://github.com/pypa/sampleproject"
+
+[tool.ruff]
+line-length = 88
+extend-exclude = ["docs", ".venv"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint]
+select = [
+    # RULES: https://docs.astral.sh/ruff/rules/
+    "A", # flake8-builtins
+    "B", # flake8-bugbear
+    "C", # flake8-comprehensions
+    "E", # pycodestyle errors
+    "G", # flake8-logging-format
+    "F", # pyflakes
+    "I", # isort
+    "N", # PEP8 naming
+    "S", # flake8-bandit
+    "W", # pycodestyle warnings
+    "T20", # flake8-print
+    "C4", # flake8-comprehensions
+    "EM", # flake8-errmsg
+    "UP", # pyupgrade
+    "PL", # Pylint
+    "PT", # flake8-pytest-style
+    "ISC", # flake8-implicit-str-concat
+    "ICN", # flake8-import-conventions
+    "ARG", # flake8-unused-arguments
+    "COM", # flake8-commas
+    "FBT", # flake8-boolean-trap
+    "LOG", # flake8-logging
+    "SIM", # flake8-simplify
+    "TRY", # tryceratops
+    "PIE", # flake8-pie
+    "RUF", # Ruff-specific rules
+    "ASYNC", # flake8-async
+]
+ignore = [
+    "D103", # Missing docstring in public function
+    "PLR2004", # Magic value used in comparison, consider replacing X with a constant variable
+    "SIM108", # Use ternary operator
+    "SIM117", # Use a single `with` statement with multiple contexts instead of nested `with` statements
+    "E501", # Line too long
+    "TRY002", # Create your own exception
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/test_integrations/**.py" = ["ANN001", "ANN201"]
+"tests/**.py" = ["ALL"] # ["S101", "PLR2004", "PT011", "C409", "B017"]
+"tests/test_integrations/test_drf/**.py" = ["E501", "S105", "EM101", "TRY003"]
+"tests/container_objects.py" = ["PLR0913", "ARG001"]
+"src/injection/__init__.py" = ["F401"]
+"docs/conf.py" = ["A001"]
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "hatch==1.12.0",
+    "pre-commit",
+]
+docs = [
+    "sphinx==7.*",
+    "sphinx-rtd-theme==2.*",
+    "sphinx-autobuild",
+    "sphinx-copybutton==0.*",
+    "myst-parser==3.*",
+]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "djangorestframework",
+    "fastapi",
+    "litestar",
+    "flask",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning:pkg_resources.*",
+]
+
+[tool.hatch.version]
+path = "src/injection/__version__.py"
+
+# FOR LOCAL TESTS (make test)
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.hatch-test]
+randomize = true
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/injection"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/injection"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# https://hatch.pypa.io/latest/plugins/publisher/package-index/
+# https://hatch.pypa.io/latest/how-to/publish/repo/
+#[tool.hatch.publish.index.repos.main]
+#url = "https://upload.pypi.org/legacy/"
+#
+#[tool.hatch.publish.index.repos.test]
+#url = "https://test.pypi.org/legacy/"
+
+[tool.coverage.run]
+omit = [
+    "src/injection/__version__.py",
+    "*/tests/*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "sys.version_info",
+    "raise NotImplementedError",
+    "ImportError"
+]

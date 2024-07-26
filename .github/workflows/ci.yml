@@ -1,0 +1,110 @@
+name: Tests And Linting
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pre-Commit
+        run: python -m pip install pre-commit
+
+      - name: Execute Pre-Commit
+        run: make lint-ci
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: pdm-project/setup-pdm@v4
+        name: Set up PDM
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-python-prereleases: false
+          prerelease: false
+          cache: true
+          cache-dependency-path: |
+            ./pdm.lock
+
+      - name: Install dependencies
+        run: pdm install -G:all
+
+      - name: Test with coverage
+        run: make tests-ci
+
+      # BUG WITH @v4: https://github.com/actions/upload-artifact/issues/478
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage-xml
+          path: coverage.xml
+
+  codecov:
+    needs:
+      - lint
+      - test
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          merge-multiple: true
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+#  code_quality:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    permissions:
+#      security-events: write
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Initialize CodeQL With Dependencies
+#        if: github.event_name == 'push' && github.ref_name == 'main'
+#        uses: github/codeql-action/init@v3
+#
+#      - name: Initialize CodeQL Without Dependencies
+#        if: github.event_name == 'pull_request'
+#        uses: github/codeql-action/init@v3
+#        with:
+#          setup-python-dependencies: false
+#
+#      - name: Perform CodeQL Analysis
+#        uses: github/codeql-action/analyze@v3
