@@ -1,6 +1,6 @@
 # Injection
 
-![PyPI - Version](https://img.shields.io/pypi/v/deps-injection?label=pypi%20version)
+![PyPI - Version](https://img.shields.io/pypi/v/deps-injection?label=pypi%20version&color=012111012)
 ![GitHub License](https://img.shields.io/github/license/nightblure/injection?color=012111012)
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/deps-injection)

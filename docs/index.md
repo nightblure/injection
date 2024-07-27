@@ -7,8 +7,15 @@
    :maxdepth: 1
    :caption: Introduction
 
-   introduction/concepts-and-key_features
+   introduction/concepts-and-features
    introduction/installation
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Containers
+
+    containers/declarative-container
+    containers/resolving
 
 .. toctree::
     :maxdepth: 1
@@ -17,10 +24,25 @@
     providers/transient
     providers/callable
     providers/partial_callable
-    providers_coroutine
+    providers/coroutine
     providers/singleton
     providers/object
     providers/provided_instance
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Integration with web frameworks
+
+    integration-with-web-frameworks/fastapi
+    integration-with-web-frameworks/flask
+    integration-with-web-frameworks/litestart
+    integration-with-web-frameworks/drf
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Testing
+
+    testing/provider-overriding
 
 .. toctree::
     :maxdepth: 1
