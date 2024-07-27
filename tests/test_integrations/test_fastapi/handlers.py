@@ -12,8 +12,7 @@ from tests.container_objects import Container, Redis
 
 router = APIRouter(prefix="/api")
 
-RedisDependency = Annotated[Redis, Depends(Provide["redis"])]
-RedisDependencyExplicit = Annotated[Redis, Depends(Provide[Container.redis])]
+RedisDependency = Annotated[Redis, Depends(Provide[Container.redis])]
 
 
 @router.get("/values")
@@ -25,6 +24,6 @@ def some_get_endpoint_handler(redis: RedisDependency):
 
 @router.post("/values")
 @inject
-async def some_get_async_endpoint_handler(redis: RedisDependencyExplicit):
+async def some_get_async_endpoint_handler(redis: RedisDependency):
     value = redis.get(399)
     return {"detail": value}

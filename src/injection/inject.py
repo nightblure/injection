@@ -3,7 +3,6 @@ import sys
 from functools import wraps
 from typing import Any, Callable, Dict, TypeVar, Union
 
-from injection.container_registry import ContainerRegistry
 from injection.provide import Provide
 from injection.providers.base import BaseProvider
 
@@ -64,24 +63,11 @@ def _resolve_provide_marker(marker: Provide) -> BaseProvider:
 
     marker_provider = marker.provider
 
-    if not isinstance(marker_provider, (str, BaseProvider)):
-        msg = f"Incorrect marker type: {type(marker_provider)!r}. Marker parameter must be either str or BaseProvider."
+    if not isinstance(marker_provider, BaseProvider):
+        msg = f"Incorrect marker type: {type(marker_provider)!r}. Marker parameter must be either BaseProvider."
         raise TypeError(msg)
 
-    if isinstance(marker_provider, BaseProvider):
-        return marker_provider
-
-    containers_count = ContainerRegistry.get_containers_count()
-
-    if isinstance(marker_provider, str):
-        if containers_count > 1:
-            msg = "Please specify the container and its provider explicitly"
-            raise Exception(msg)
-
-        if containers_count == 1:
-            container = ContainerRegistry.get_default_container()
-            provider = container.get_provider_by_attr_name(marker_provider)
-            return provider
+    return marker_provider
 
 
 def _extract_provider_values_from_markers(markers: Markers) -> Dict[str, Any]:

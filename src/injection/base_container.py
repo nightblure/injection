@@ -39,17 +39,6 @@ class DeclarativeContainer:
         return list(cls.__get_providers().values())
 
     @classmethod
-    def get_provider_by_attr_name(cls, provider_name: str) -> BaseProvider:
-        providers = cls.__get_providers()
-        provider = providers.get(provider_name)
-
-        if provider_name not in providers:
-            msg = f"Provider {provider_name!r} not found"
-            raise Exception(msg)
-
-        return provider
-
-    @classmethod
     @contextmanager
     def override_providers(
         cls,

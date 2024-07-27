@@ -83,8 +83,8 @@ def func_with_injections(
     *,
     ddd,
     redis=Provide[Container.redis],
-    svc1=Provide["service"],
-    svc2=Provide["some_service"],
+    svc1=Provide[Container.service],
+    svc2=Provide[Container.some_service],
     numms=Provide[Container.num],
     partial_callable_param=Provide[Container.partial_callable],
 ):

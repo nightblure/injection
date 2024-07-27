@@ -43,7 +43,7 @@ class DIContainer(DeclarativeContainer):
 
 
 @inject
-def exec_query_example(some_sqla_dao=Provide["some_sqla_dao"]):
+def exec_query_example(some_sqla_dao=Provide[DIContainer.some_sqla_dao]):
     with some_sqla_dao:
         result = some_sqla_dao.exec_query('SELECT 234')
 
