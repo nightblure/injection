@@ -1,7 +1,5 @@
 test:
-	pdm run hatch test --cover --all
-
-tests-ci:
+	# pdm run hatch test --cover --all
 	pdm run pytest tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
 
 lint:
