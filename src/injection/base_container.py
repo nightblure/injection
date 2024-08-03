@@ -40,6 +40,20 @@ class DeclarativeContainer:
 
     @classmethod
     @contextmanager
+    def override_providers_kwargs(
+        cls,
+        *,
+        reset_singletons: bool = False,
+        **providers_for_overriding,
+    ) -> Iterator[None]:
+        with cls.override_providers(
+            providers_for_overriding,
+            reset_singletons=reset_singletons,
+        ):
+            yield
+
+    @classmethod
+    @contextmanager
     def override_providers(
         cls,
         providers_for_overriding: Dict[str, Any],
@@ -55,6 +69,7 @@ class DeclarativeContainer:
                 msg = f"Provider with name {given_name!r} not found"
                 raise RuntimeError(msg)
 
+        # Reset singletons that which were resolved BEFORE the current context
         if reset_singletons:
             cls.reset_singletons()
 
@@ -68,6 +83,7 @@ class DeclarativeContainer:
             provider = current_providers[provider_name]
             provider.reset_override()
 
+        # Reset singletons that which were resolved INSIDE the current context
         if reset_singletons:
             cls.reset_singletons()
 
@@ -77,7 +93,7 @@ class DeclarativeContainer:
 
         for provider in providers_gen:
             if isinstance(provider, Singleton):
-                provider.reset_cache()
+                provider.reset()
 
     @classmethod
     def reset_override(cls) -> None:

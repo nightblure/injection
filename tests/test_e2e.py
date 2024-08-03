@@ -2,7 +2,7 @@ import asyncio
 from dataclasses import dataclass
 from unittest.mock import Mock
 
-from tests.container_objects import func_with_injections
+from tests.container_objects import Settings, func_with_injections
 
 
 def test_e2e_success(container):
@@ -45,17 +45,13 @@ def test_e2e_override(container):
     mock_settings = MockSettings(redis_url=mock_url)
     providers_for_overriding = {"settings": mock_settings}
 
-    # container.reset_singletons()
-    # res = container.callable_test_1(d='sfs')
     with container.override_providers(providers_for_overriding, reset_singletons=True):
         redis_url = func_with_injections(2, ddd="sfs")
         assert mock_url == redis_url
 
-    # container.reset_singletons()
     redis_url = func_with_injections(2, ddd="sfs")
     assert redis_url == "redis://localhost"
 
-    # mock redis
     mock_redis = Mock()
     mock_redis.url = "mock_url_tests"
     mock_redis.get.return_value = None
@@ -64,5 +60,14 @@ def test_e2e_override(container):
     _ = container.redis()
     _ = container.settings()
 
-    with container.override_providers(providers_for_overriding):
+    with container.override_providers(providers_for_overriding, reset_singletons=True):
         assert mock_redis.url == func_with_injections(2, ddd="sfs")
+
+    mock_settings = Settings(redis_url="mock_redis_url_2")
+
+    with container.override_providers_kwargs(
+        settings=mock_settings,
+        reset_singletons=True,
+    ):
+        assert container.redis().url == "mock_redis_url_2"
+        assert func_with_injections(2, ddd="sfs") == "mock_redis_url_2"

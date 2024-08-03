@@ -39,10 +39,7 @@ def test_override_providers_success(container):
         mock_redis.get.return_value = -999
         nested_override_objects = {"redis": mock_redis, "num": 92934}
 
-        with container.override_providers(
-            nested_override_objects,
-            reset_singletons=False,
-        ):
+        with container.override_providers(nested_override_objects):
             assert container.num() == 92934
             assert container.redis().get() == -999
 

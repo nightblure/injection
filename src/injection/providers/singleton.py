@@ -19,13 +19,11 @@ class Singleton(BaseFactoryProvider[T]):
         Positional arguments are appended after Factory positional dependencies.
         Keyword arguments have the priority over the Factory keyword dependencies with the same name.
         """
-        if args or kwargs:
-            self.reset_cache()
 
         if self._instance is None:
             self._instance = super()._resolve(*args, **kwargs)
 
         return self._instance
 
-    def reset_cache(self):
+    def reset(self):
         self._instance = None
