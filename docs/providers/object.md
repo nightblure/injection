@@ -16,6 +16,4 @@ class Container(DeclarativeContainer):
 if __name__ == "__main__":
     assert Container.provider1() == "string"
     assert Container.provider2() == 13425
-
-
 ```

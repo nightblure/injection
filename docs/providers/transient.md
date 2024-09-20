@@ -24,5 +24,4 @@ if __name__ == "__main__":
     instance2 = DIContainer.provider()
 
     assert instance1 is not instance2
-
 ```
