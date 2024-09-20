@@ -22,5 +22,4 @@ class DIContainer(DeclarativeContainer):
 if __name__ == "__main__":
     arg1, arg2 = asyncio.run(DIContainer.provider())
     assert (arg1, arg2) == (1, 2)
-
 ```
