@@ -38,7 +38,7 @@ tag:
 	git tag -a ${v} -m "${v}"
 
 push-tag:
-	git push origin ${v}
+	git add . && git commit -m "Bump version" && git push origin ${v}
 
 mypy:
 	pdm run mypy src
