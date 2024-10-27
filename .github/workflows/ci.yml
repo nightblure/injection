@@ -24,8 +24,21 @@ jobs:
       - name: Execute Pre-Commit
         run: make lint-ci
 
-  test:
+  mypy:
     needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: Execute mypy
+        run: make mypy
+
+  test:
+    needs: mypy
     runs-on: ubuntu-latest
 
     strategy:
@@ -54,7 +67,7 @@ jobs:
         run: pdm install -G:all
 
       - name: Test with coverage
-        run: make test
+        run: make test-ci
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4

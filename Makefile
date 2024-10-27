@@ -1,6 +1,8 @@
 test:
-	# pdm run hatch test --cover --all
-	pdm run pytest tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
+	hatch test --cover --all --randomize
+
+test-ci:
+	pdm run pytest -rA tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
 
 lint:
 	pdm run pre-commit install
@@ -37,3 +39,6 @@ tag:
 
 push-tag:
 	git push origin ${v}
+
+mypy:
+	pdm run mypy src
