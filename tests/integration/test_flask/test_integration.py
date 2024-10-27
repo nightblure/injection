@@ -1,6 +1,6 @@
 from flask import Flask
-from injection import Provide, inject
 
+from injection import Provide, inject
 from tests.container_objects import Container
 
 app = Flask(__name__)

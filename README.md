@@ -9,6 +9,7 @@
 [![Documentation Status](https://readthedocs.org/projects/injection/badge/?version=latest)](https://injection.readthedocs.io/en/latest/?badge=latest)
 
 [![Tests And Linting](https://github.com/nightblure/injection/actions/workflows/ci.yml/badge.svg)](https://github.com/nightblure/injection/actions/workflows/ci.yml)
+[![MyPy Strict](https://img.shields.io/badge/mypy-strict-blue)](https://mypy.readthedocs.io/en/stable/getting_started.html#strict-mode-and-configuration)
 [![codecov](https://codecov.io/gh/nightblure/injection/graph/badge.svg?token=2ZTFBlJqTb)](https://codecov.io/gh/nightblure/injection)
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)

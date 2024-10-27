@@ -1,9 +1,9 @@
-from injection import Provide, inject
 from rest_framework import serializers, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from injection import Provide, inject
 from tests.container_objects import Container
 
 

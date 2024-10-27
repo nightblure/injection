@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Union
 
 import pytest
+
 from injection.provided import _get_value_from_object_by_dotted_path
 from injection.providers.singleton import Singleton
 
@@ -28,7 +29,7 @@ class Settings:
 class NestingTestDTO: ...
 
 
-@pytest.fixture()
+@pytest.fixture
 def some_settings_provider() -> Singleton[Settings]:
     return Singleton(Settings)
 

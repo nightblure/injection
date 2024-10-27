@@ -1,9 +1,14 @@
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, TypeVar, Union
 
-from injection.providers.base import BaseProvider, ProvidedInstance
+from injection.provided import ProvidedInstance
+from injection.providers.base import BaseProvider
+
+T = TypeVar("T")
 
 
-def resolve_value(value: Union[ProvidedInstance, BaseProvider, Any]) -> Any:
+def resolve_value(
+    value: Union[ProvidedInstance, BaseProvider[T], Any],
+) -> Union[T, Any]:
     if isinstance(value, ProvidedInstance):
         value = value.get_value()
 
@@ -13,7 +18,7 @@ def resolve_value(value: Union[ProvidedInstance, BaseProvider, Any]) -> Any:
     return value
 
 
-def get_clean_args(args) -> Tuple[Any, ...]:
+def get_clean_args(args: Tuple[Any, ...]) -> Tuple[Any, ...]:
     clean_args = []
 
     for value_or_provider in args:
@@ -23,7 +28,7 @@ def get_clean_args(args) -> Tuple[Any, ...]:
     return tuple(clean_args)
 
 
-def get_clean_kwargs(kwargs) -> Dict[str, Any]:
+def get_clean_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     clean_kwargs = {}
 
     for arg, value in kwargs.items():

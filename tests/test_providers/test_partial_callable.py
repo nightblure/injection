@@ -1,6 +1,7 @@
 import functools
 
 import pytest
+
 from injection import providers
 
 

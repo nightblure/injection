@@ -1,6 +1,6 @@
 import inspect
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, List, TypeVar, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, TypeVar
 
 from injection.providers import Singleton
 from injection.providers.base import BaseProvider
@@ -9,8 +9,8 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 
 class DeclarativeContainer:
-    __providers: Dict[str, BaseProvider] = None
-    __instance: Union["DeclarativeContainer", None] = None
+    __instance: Optional["DeclarativeContainer"] = None
+    __providers: Optional[Dict[str, BaseProvider[Any]]] = None
 
     @classmethod
     def instance(cls) -> "DeclarativeContainer":
@@ -19,7 +19,7 @@ class DeclarativeContainer:
         return cls.__instance
 
     @classmethod
-    def __get_providers(cls) -> Dict[str, BaseProvider]:
+    def __get_providers(cls) -> Dict[str, BaseProvider[Any]]:
         if cls.__providers is None:
             cls.__providers = {
                 member_name: member
@@ -29,13 +29,13 @@ class DeclarativeContainer:
         return cls.__providers
 
     @classmethod
-    def _get_providers_generator(cls) -> Iterator[BaseProvider]:
+    def _get_providers_generator(cls) -> Iterator[BaseProvider[Any]]:
         for _, member in inspect.getmembers(cls):
             if isinstance(member, BaseProvider):
                 yield member
 
     @classmethod
-    def get_providers(cls) -> List[BaseProvider]:
+    def get_providers(cls) -> List[BaseProvider[Any]]:
         return list(cls.__get_providers().values())
 
     @classmethod
@@ -44,7 +44,7 @@ class DeclarativeContainer:
         cls,
         *,
         reset_singletons: bool = False,
-        **providers_for_overriding,
+        **providers_for_overriding: Any,
     ) -> Iterator[None]:
         with cls.override_providers(
             providers_for_overriding,

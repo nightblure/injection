@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.test_integrations.test_fastapi.app import create_app
+from tests.integration.test_fastapi.app import create_app
 
 
 @pytest.fixture(scope="session")
@@ -11,7 +11,7 @@ def app():
     return create_app()
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_client(app):
     client = TestClient(app)
     return client

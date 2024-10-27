@@ -1,4 +1,5 @@
 import pytest
+
 from injection.provided import ProvidedInstance
 
 

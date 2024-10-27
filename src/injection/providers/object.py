@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import TypeVar, cast
 
 from injection.providers.base import BaseProvider
 from injection.resolving import resolve_value
@@ -12,5 +12,5 @@ class Object(BaseProvider[T]):
         self._obj = obj
 
     def _resolve(self) -> T:
-        value = resolve_value(self._obj)
+        value = cast(T, resolve_value(self._obj))
         return value
