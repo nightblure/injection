@@ -5,7 +5,7 @@
 groups = ["default", "dev", "docs", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:86b6cdfa493b02cb3a0560231a662be77849b03aef22d8b53700da475c28b7f5"
+content_hash = "sha256:1d43eeec7af5db2649e9a3d61c68381bf15ef9d46a6f3cb7e275181d4bd79a0b"
 
 [[metadata.targets]]
 requires_python = ">=3.8"
@@ -700,7 +700,7 @@ files = [
 
 [[package]]
 name = "hatch"
-version = "1.12.0"
+version = "1.13.0"
 requires_python = ">=3.8"
 summary = "Modern, extensible Python project management"
 groups = ["dev"]
@@ -723,8 +723,8 @@ dependencies = [
     "zstandard<1",
 ]
 files = [
-    {file = "hatch-1.12.0-py3-none-any.whl", hash = "sha256:7df02b2df8b2364c33f1cadab4966ae24d8dd235edd61b21ed9c2975506e4174"},
-    {file = "hatch-1.12.0.tar.gz", hash = "sha256:ae80478d10312df2b44d659c93bc2ed4d33aecddce4b76378231bdf81c8bf6ad"},
+    {file = "hatch-1.13.0-py3-none-any.whl", hash = "sha256:bb1a18558a626279cae338b4d8a9d3ca4226d5e06d50de600608c57acd131b67"},
+    {file = "hatch-1.13.0.tar.gz", hash = "sha256:5e1a75770cfe8f3ebae3abfded3a976238b0acefd19cdabc5245597525b8066f"},
 ]
 
 [[package]]
