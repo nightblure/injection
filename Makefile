@@ -37,8 +37,15 @@ tag:
 	pdm run hatch version "${v}"
 	git tag -a ${v} -m "${v}"
 
-release:
-	git add . && git commit -m "Bump version" && git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
+release-patch:
+	hatch version patch
+	git add . && git commit -m "Bump version"
+	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
+
+release-minor:
+	hatch version minor
+	git add . && git commit -m "Bump version"
+	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
 
 mypy:
 	pdm run mypy src
