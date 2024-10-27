@@ -39,7 +39,7 @@ tag:
 
 release:
 	git add . && git commit -m "Bump version" && git push
-	git tag -a $(hatch version) -m $(hatch version)
+	git tag -a v$(hatch version) -m $(hatch version)
 	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
 
 release-patch:
