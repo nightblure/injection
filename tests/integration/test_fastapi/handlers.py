@@ -13,7 +13,7 @@ from tests.container_objects import Container, Redis
 router = APIRouter(prefix="/api")
 
 RedisDependency = Annotated[Redis, Depends(Provide[Container.redis])]
-RedisDependencyWithOnlyProvider = Annotated[Redis, Depends(Container.redis)]
+RedisDependencyWithoutProvideMarker = Annotated[Redis, Depends(Container.redis)]
 
 
 @router.get("/values")
@@ -28,3 +28,10 @@ def some_get_endpoint_handler(redis: RedisDependency):
 async def some_get_async_endpoint_handler(redis: RedisDependency):
     value = redis.get(399)
     return {"detail": value}
+
+
+@router.post("/values-without_provide")
+@inject
+async def async_endpoint_handler_with_dep_without_provide(
+    _: RedisDependencyWithoutProvideMarker,
+): ...
