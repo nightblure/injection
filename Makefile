@@ -42,3 +42,6 @@ push-tag:
 
 mypy:
 	pdm run mypy src
+
+mypy-ci:
+	mypy src
