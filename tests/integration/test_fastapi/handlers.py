@@ -13,6 +13,7 @@ from tests.container_objects import Container, Redis
 router = APIRouter(prefix="/api")
 
 RedisDependency = Annotated[Redis, Depends(Provide[Container.redis])]
+RedisDependencyWithOnlyProvider = Annotated[Redis, Depends(Container.redis)]
 
 
 @router.get("/values")

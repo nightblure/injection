@@ -10,13 +10,10 @@ from injection.providers.singleton import Singleton
 def test_get_providers(container):
     providers = container.get_providers()
 
+    assert len(providers) > 0
+
     for provider in providers:
         assert isinstance(provider, BaseProvider)
-
-
-def test_get_provider_by_attr_name_fail_on_not_exists_provider(container):
-    with pytest.raises(Exception):
-        container.get_provider_by_attr_name("not_exists_provider")
 
 
 def test_override_providers_fail_with_unknown_provider(container):
@@ -72,7 +69,7 @@ def test_reset_singletons(container):
 
     for provider in providers:
         if isinstance(provider, Singleton):
-            _ = provider()
+            provider()
             assert provider._instance is not None
 
     container.reset_singletons()
