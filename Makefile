@@ -1,8 +1,11 @@
 test:
 	hatch test --cover --all --randomize
 
-test-ci:
-	pdm run pytest -rA tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
+#test-ci:
+	#pdm run pytest -rA tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
+
+test-py:
+	hatch test -i python="$(v)" --cover --randomize
 
 lint:
 	pdm run pre-commit install
