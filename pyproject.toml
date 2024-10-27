@@ -138,6 +138,7 @@ extra-dependencies = [
     "flask",
 ]
 
+# https://hatch.pypa.io/1.13/config/internal/testing/#scripts
 [tool.hatch.envs.hatch-test.scripts]
 run = "pytest{env:HATCH_TEST_ARGS:} {args}"
 run-cov = "coverage run -m pytest{env:HATCH_TEST_ARGS:} {args}"
