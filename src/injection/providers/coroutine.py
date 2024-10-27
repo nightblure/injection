@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable, TypeVar
+from typing import Any, Awaitable, Callable, TypeVar, cast
 
 from typing_extensions import ParamSpec
 
@@ -16,3 +16,6 @@ class Coroutine(BaseFactoryProvider[T]):
         **kw: P.kwargs,
     ) -> None:
         super().__init__(coroutine, *a, **kw)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[T]:
+        return cast(Awaitable[T], super().__call__(*args, **kwargs))
