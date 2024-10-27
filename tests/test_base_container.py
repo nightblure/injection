@@ -2,6 +2,7 @@ from typing import Generator
 from unittest.mock import Mock
 
 import pytest
+
 from injection.providers.base import BaseProvider
 from injection.providers.singleton import Singleton
 

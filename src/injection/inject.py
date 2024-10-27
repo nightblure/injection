@@ -1,17 +1,23 @@
 import inspect
 import sys
 from functools import wraps
-from typing import Any, Callable, Dict, TypeVar, Union
+from typing import Any, Callable, Coroutine, Dict, TypeVar, Union, cast
 
 from injection.provide import Provide
 from injection.providers.base import BaseProvider
+
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
 
 if sys.version_info >= (3, 9):
     from typing import Annotated, get_args, get_origin
 else:
     from typing_extensions import Annotated, get_args, get_origin
 
-F = TypeVar("F", bound=Callable[..., Any])
+T = TypeVar("T")
+P = ParamSpec("P")
 Markers = Dict[str, Provide]
 
 
@@ -19,7 +25,7 @@ def _is_fastapi_depends(param: Any) -> bool:
     try:
         import fastapi
     except ImportError:
-        fastapi = None
+        fastapi = None  # type: ignore
     return fastapi is not None and isinstance(param, fastapi.params.Depends)
 
 
@@ -40,7 +46,7 @@ def _extract_marker(parameter: inspect.Parameter) -> Union[Any, Provide]:
     return marker
 
 
-def _get_markers_from_function(f: F) -> Markers:
+def _get_markers_from_function(f: Callable[P, T]) -> Markers:
     injections = {}
     signature = inspect.signature(f)
     parameters = signature.parameters
@@ -56,7 +62,7 @@ def _get_markers_from_function(f: F) -> Markers:
     return injections
 
 
-def _resolve_provide_marker(marker: Provide) -> BaseProvider:
+def _resolve_provide_marker(marker: Provide) -> BaseProvider[Any]:
     if not isinstance(marker, Provide):
         msg = f"Incorrect marker type: {type(marker)!r}. Marker must be either Provide."
         raise TypeError(msg)
@@ -81,9 +87,12 @@ def _extract_provider_values_from_markers(markers: Markers) -> Dict[str, Any]:
     return providers
 
 
-def _get_async_injected(f: F, markers: Markers) -> F:
+def _get_async_injected(
+    f: Callable[P, Coroutine[Any, Any, T]],
+    markers: Markers,
+) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(f)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         providers = _extract_provider_values_from_markers(markers)
         kwargs.update(providers)
         return await f(*args, **kwargs)
@@ -91,9 +100,9 @@ def _get_async_injected(f: F, markers: Markers) -> F:
     return wrapper
 
 
-def _get_sync_injected(f: F, markers: Markers) -> F:
+def _get_sync_injected(f: Callable[P, T], markers: Markers) -> Callable[P, T]:
     @wraps(f)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         providers = _extract_provider_values_from_markers(markers)
         kwargs.update(providers)
         return f(*args, **kwargs)
@@ -101,13 +110,12 @@ def _get_sync_injected(f: F, markers: Markers) -> F:
     return wrapper
 
 
-def inject(f: F) -> F:
+def inject(f: Callable[P, T]) -> Callable[P, T]:
     """Decorate callable with injecting decorator"""
     markers = _get_markers_from_function(f)
 
     if inspect.iscoroutinefunction(f):
         func_with_injected_params = _get_async_injected(f, markers)
-    else:
-        func_with_injected_params = _get_sync_injected(f, markers)
+        return cast(Callable[P, T], func_with_injected_params)
 
-    return func_with_injected_params
+    return _get_sync_injected(f, markers)

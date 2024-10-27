@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 
 if TYPE_CHECKING:
     from injection.providers.base import BaseProvider
@@ -13,9 +13,9 @@ def _get_value_from_object_by_dotted_path(obj: Any, path: str) -> Any:
 
 
 class ProvidedInstance:
-    def __init__(self, provided: "BaseProvider"):
+    def __init__(self, provided: "BaseProvider[Any]"):
         self._provided = provided
-        self._attrs = []
+        self._attrs: List[str] = []
 
     def __getattr__(self, attr: str) -> "ProvidedInstance":
         self._attrs.append(attr)

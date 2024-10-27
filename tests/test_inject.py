@@ -1,4 +1,5 @@
 import pytest
+
 from injection import Provide
 from injection.inject import _resolve_provide_marker
 

@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+
 from injection import providers
 
 
@@ -9,7 +10,7 @@ async def coroutine(arg1, arg2):
     return arg1, arg2
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_coroutine_provider_direct_resolve():
     coroutine_provider = providers.Coroutine(coroutine, arg1=1, arg2=2)
     coro = coroutine_provider()

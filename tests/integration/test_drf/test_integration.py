@@ -3,11 +3,11 @@ import os
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_drf_client():
     os.environ.setdefault(
         "DJANGO_SETTINGS_MODULE",
-        "tests.test_integrations.test_drf.drf_test_project.settings",
+        "tests.integration.test_drf.drf_test_project.settings",
     )
     import django
 

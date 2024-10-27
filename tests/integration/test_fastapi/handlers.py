@@ -6,8 +6,8 @@ else:
     from typing_extensions import Annotated
 
 from fastapi import APIRouter, Depends
-from injection import Provide, inject
 
+from injection import Provide, inject
 from tests.container_objects import Container, Redis
 
 router = APIRouter(prefix="/api")

@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from tests.test_integrations.test_fastapi.handlers import router
+from tests.integration.test_fastapi.handlers import router
 
 
 @asynccontextmanager

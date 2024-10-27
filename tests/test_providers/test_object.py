@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import pytest
+
 from injection import providers
 
 

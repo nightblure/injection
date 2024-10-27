@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import pytest
+
 from injection import providers
 
 
@@ -10,7 +11,7 @@ class SomeClass:
     field2: int
 
 
-@pytest.fixture()
+@pytest.fixture
 def transient_provider():
     return providers.Transient(SomeClass, field1="value", field2=1)
 
