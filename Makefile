@@ -37,8 +37,8 @@ tag:
 	pdm run hatch version "${v}"
 	git tag -a ${v} -m "${v}"
 
-push-tag:
-	git add . && git commit -m "Bump version" && git push origin ${v}
+release:
+	git add . && git commit -m "Bump version" && git push origin $(git describe --abbrev=0)
 
 mypy:
 	pdm run mypy src
