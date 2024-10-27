@@ -1,5 +1,5 @@
 [project]
-name = "deps-injection" # SHOULD BE SAME WITH PROJECT NAME IN PYPI PUBLISHER@
+name = "deps-injection" # SHOULD BE SAME WITH PROJECT NAME IN PYPI PUBLISHER
 requires-python = ">=3.8"
 license = { text = "MIT" }
 dynamic = ["version"]
@@ -16,8 +16,10 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython"
 ]
 keywords = ["dependency", "injector", "di", "injection"]
-description = "Easy dependency injection"
-dependencies = []
+description = "Easy dependency injection without wiring"
+dependencies = [
+    "typing-extensions>=4.12.2",
+]
 readme = "README.md"
 
 [project.urls]
@@ -92,19 +94,11 @@ filterwarnings = [
 [tool.hatch.version]
 path = "src/injection/__version__.py"
 
-# FOR LOCAL TESTS (make test)
-[[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
-
-[tool.hatch.envs.hatch-test]
-randomize = true
-
 [tool.hatch.build.targets.sdist]
 only-include = ["src/injection"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/injection"]
-
 
 [tool.pdm]
 distribution = false
@@ -113,6 +107,8 @@ distribution = false
 dev = [
     "hatch==1.12.0",
     "pre-commit",
+    "mypy>=1.13.0",
+    "setuptools>=75.2.0",
 ]
 docs = [
     "sphinx==7.*",
@@ -130,6 +126,20 @@ test = [
     "litestar",
     "flask",
 ]
+
+[tool.hatch.envs.hatch-test]
+extra-dependencies = [
+    "typing-extensions>=4.12.2",
+    "pytest-asyncio",
+    "pytest-cov",
+    "djangorestframework",
+    "fastapi",
+    "litestar",
+    "flask",
+]
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [build-system]
 requires = ["hatchling"]
@@ -157,3 +167,7 @@ exclude_lines = [
     "raise NotImplementedError",
     "ImportError"
 ]
+
+[tool.mypy]
+python_version = "3.8" # oldest supported version at this moment
+strict = true
