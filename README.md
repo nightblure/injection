@@ -9,12 +9,12 @@
 [![Documentation Status](https://readthedocs.org/projects/injection/badge/?version=latest)](https://injection.readthedocs.io/en/latest/?badge=latest)
 
 [![Tests And Linting](https://github.com/nightblure/injection/actions/workflows/ci.yml/badge.svg)](https://github.com/nightblure/injection/actions/workflows/ci.yml)
-[![MyPy Strict](https://img.shields.io/badge/mypy-strict-blue)](https://mypy.readthedocs.io/en/stable/getting_started.html#strict-mode-and-configuration)
 [![codecov](https://codecov.io/gh/nightblure/injection/graph/badge.svg?token=2ZTFBlJqTb)](https://codecov.io/gh/nightblure/injection)
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 [![pdm-managed](https://img.shields.io/endpoint?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fpdm-project%2F.github%2Fbadge.json)](https://pdm-project.org)
+[![MyPy Strict](https://img.shields.io/badge/mypy-strict-blue)](https://mypy.readthedocs.io/en/stable/getting_started.html#strict-mode-and-configuration)
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/1da49eb0b28eacae4624/maintainability)](https://codeclimate.com/github/nightblure/injection/maintainability)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/nightblure/injection/total?color=102255102&label=Total%20downloads)
