@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     steps:
@@ -76,11 +76,8 @@ jobs:
           cache-dependency-path: |
             ./pdm.lock
 
-      - name: Install dependencies
-        run: pdm install -G:all
-
       - name: Test with coverage
-        run: make test-ci
+        run: make test-py v="$(python-version)"
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
