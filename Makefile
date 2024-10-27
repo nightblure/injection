@@ -33,13 +33,9 @@ docs-deps:
 	pdm install -G docs
 
 # example: make tag v="v3.9.2", TAG MUST INCLUDE v
-tag:
-	pdm run hatch version "${v}"
-	git tag -a ${v} -m "${v}"
-
 release:
+	git tag -a v$(hatch version) -m "$(hatch version)"
 	git add . && git commit -m "Bump version" && git push
-	git tag -a v$(hatch version) -m $(hatch version)
 	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
 
 release-patch:
