@@ -34,7 +34,7 @@ docs-deps:
 
 # example: make tag v="v3.9.2", TAG MUST INCLUDE v
 release:
-	git tag -a "v$(hatch version)" -m "$(hatch version)"
+	git tag -a "v$(hatch version)" -m "v$(hatch version)"
 	git add . && git commit -m "Bump version" && git push
 	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
 
