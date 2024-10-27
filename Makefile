@@ -38,7 +38,7 @@ tag:
 	git tag -a ${v} -m "${v}"
 
 release:
-	git add . && git commit -m "Bump version" && git push origin $(git describe --abbrev=0)
+	git add . && git commit -m "Bump version" && git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
 
 mypy:
 	pdm run mypy src
