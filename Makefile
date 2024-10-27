@@ -36,7 +36,7 @@ docs-deps:
 release:
 	git tag -a "v$(hatch version)" -m "v$(hatch version)"
 	git add . && git commit -m "Bump version" && git push
-	git push origin $(git describe --tags $(git rev-list --tags --max-count=1))
+	git push origin "$(git describe --tags $(git rev-list --tags --max-count=1))"
 
 release-patch:
 	hatch version patch
