@@ -1,9 +1,12 @@
 import inspect
+from collections import defaultdict
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, Iterator, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Iterator, List, Optional, Type, TypeVar, cast
 
+from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
 from injection.providers import Singleton
 from injection.providers.base import BaseProvider
+from injection.providers.base_factory import BaseFactoryProvider
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -101,3 +104,26 @@ class DeclarativeContainer:
 
         for provider in providers.values():
             provider.reset_override()
+
+    @classmethod
+    def resolve_by_type(cls, type_: Type[Any]) -> Any:
+        provider_factory_to_providers = defaultdict(list)
+
+        for provider in cls._get_providers_generator():
+            if not issubclass(type(provider), BaseFactoryProvider):
+                continue
+
+            provider_factory_to_providers[provider.factory].append(provider)  # type: ignore
+
+            if len(provider_factory_to_providers[provider.factory]) > 1:  # type: ignore
+                raise DuplicatedFactoryTypeAutoInjectionError(str(type_))
+
+        for providers in provider_factory_to_providers.values():
+            provider = providers[0]
+            provider = cast(BaseFactoryProvider[Any], provider)
+
+            if type_ is provider.factory:
+                return provider()
+
+        msg = f"Provider with type {str(type_)!r} not found"
+        raise Exception(msg)

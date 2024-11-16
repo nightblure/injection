@@ -26,7 +26,7 @@
 
 Easy dependency injection for all, works with Python 3.8-3.12. Main features and advantages:
 * support **Python 3.8-3.12**;
-* works with **FastAPI, Flask, Litestar** and **Django REST Framework**;
+* works with **FastAPI, Flask** and **Django REST Framework**;
 * support dependency injection via `Annotated` in `FastAPI`;
 * the code is fully typed and checked with [mypy](https://github.com/python/mypy);
 * **no third-party dependencies**;
@@ -45,7 +45,7 @@ which will allow you to easily migrate to injection
 pip install deps-injection
 ```
 
-## Using example
+## Using example with autoinject
 
 ```python3
 import sys
@@ -146,5 +146,7 @@ def test_override_providers(test_client, container):
     assert body["detail"] == "mock_get_method"
 
 ```
+
+## Using example with inject
 
 ---

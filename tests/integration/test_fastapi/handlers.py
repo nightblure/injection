@@ -16,17 +16,17 @@ RedisDependency = Annotated[Redis, Depends(Provide[Container.redis])]
 RedisDependencyWithoutProvideMarker = Annotated[Redis, Depends(Container.redis)]
 
 
-@router.get("/values")
-@inject
-def some_get_endpoint_handler(redis: RedisDependency):
-    value = redis.get(299)
-    return {"detail": value}
-
-
 @router.post("/values")
 @inject
 async def some_get_async_endpoint_handler(redis: RedisDependency):
     value = redis.get(399)
+    return {"detail": value}
+
+
+@router.get("/values/{param}")
+@inject
+def some_get_endpoint_handler(redis: RedisDependency, param: int):
+    value = redis.get(param)
     return {"detail": value}
 
 

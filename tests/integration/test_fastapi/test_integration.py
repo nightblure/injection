@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -17,12 +18,16 @@ def test_client(app):
     return client
 
 
-def test_sync_fastapi_endpoint(test_client):
-    response = test_client.get("/api/values")
+@pytest.mark.parametrize(
+    "value",
+    [1, 2, 5, 10, 245, -34636, 923425],
+)
+def test_sync_fastapi_endpoint(test_client, value: int):
+    response = test_client.get(f"/api/values/{value}")
 
     assert response.status_code == 200
     body = response.json()
-    assert body["detail"] == 299
+    assert body["detail"] == value
 
 
 def test_async_fastapi_endpoint(test_client):
@@ -52,18 +57,17 @@ def test_async_fastapi_endpoint_expect_422_without_provide_marker(test_client):
     }
 
 
-def test_fastapi_override_provider(test_client, container):
-    def mock_get_method(_):
-        return "mock_get_method"
-
+@pytest.mark.parametrize(
+    "override_value",
+    ["mock_get_method_110934", "blsdfmsdfsf", -345627434],
+)
+def test_fastapi_override_provider(test_client, container, override_value: Any):
     mock_redis = Mock()
-    mock_redis.get = mock_get_method
+    mock_redis.get = lambda _: override_value
 
-    providers_to_override = {"redis": mock_redis}
-
-    with container.override_providers(providers_to_override):
-        response = test_client.get("/api/values")
+    with container.override_providers_kwargs(redis=mock_redis):
+        response = test_client.post("/api/values")
 
     assert response.status_code == 200
     body = response.json()
-    assert body["detail"] == "mock_get_method"
+    assert body["detail"] == override_value

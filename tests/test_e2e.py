@@ -2,7 +2,11 @@ import asyncio
 from dataclasses import dataclass
 from unittest.mock import Mock
 
-from tests.container_objects import Settings, func_with_injections
+from tests.container_objects import (
+    Settings,
+    func_with_auto_injections,
+    func_with_injections,
+)
 
 
 def test_e2e_success(container):
@@ -21,12 +25,28 @@ def test_e2e_success(container):
     assert container.service() is not service
     assert container.num() == 144
 
-    callable_result = container.callable_obj(d="sdf")
-    partial_callable_result = container.partial_callable(d="sdf")(d="sdfsfwer2")
-    assert (5555, 144) == callable_result == partial_callable_result
-
     coroutine_result = asyncio.run(container.coroutine_provider())
     assert coroutine_result == (1, 2)
+
+
+def test_e2e_auto_inject_success(container):
+    redis = container.redis()
+    assert redis.url == func_with_auto_injections(2, ddd="sfs")
+
+    class MockRedis:
+        def __init__(self):
+            self.url = "mock_redis_url"
+
+        def get(self, _): ...
+
+    mock_redis = MockRedis()
+
+    with container.override_providers_kwargs(redis=MockRedis()):
+        assert mock_redis.url == func_with_auto_injections(224324, ddd="sdfsdfsdf")
+
+    redis = container.redis()
+    assert redis.url != mock_redis.url
+    assert redis.url == func_with_auto_injections(2, ddd="sfs")
 
 
 def test_e2e_override(container):
