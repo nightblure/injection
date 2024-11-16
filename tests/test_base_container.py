@@ -1,10 +1,13 @@
 from typing import Generator
+from unittest import mock
 from unittest.mock import Mock
 
 import pytest
 
+from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
 from injection.providers.base import BaseProvider
 from injection.providers.singleton import Singleton
+from tests.container_objects import Redis
 
 
 def test_get_providers(container):
@@ -99,3 +102,19 @@ def test_reset_override(container):
     assert len(container.num2._mocks) == 0
     assert container.num() == original_num_value
     assert container.num2() == original_num2_value
+
+
+def test_resolve_by_type_expect_error_on_duplicated_provider_types(container):
+    # Simulate a duplicate 'redis' provider
+    _mock_providers = [container.__dict__["redis"]]
+    _mock_providers.extend(
+        list(container._get_providers_generator()),
+    )
+
+    with mock.patch.object(
+        container,
+        "_get_providers_generator",
+        return_value=_mock_providers,
+    ):
+        with pytest.raises(DuplicatedFactoryTypeAutoInjectionError):
+            container.resolve_by_type(Redis)

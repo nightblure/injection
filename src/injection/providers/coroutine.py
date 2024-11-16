@@ -15,7 +15,7 @@ class Coroutine(BaseFactoryProvider[T]):
         *a: P.args,
         **kw: P.kwargs,
     ) -> None:
-        super().__init__(coroutine, *a, **kw)
+        super().__init__(cast(Callable[P, T], coroutine), *a, **kw)
 
     def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[T]:
         return cast(Awaitable[T], super().__call__(*args, **kwargs))
