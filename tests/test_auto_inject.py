@@ -3,6 +3,7 @@ from unittest import mock
 import pytest
 
 from injection import DeclarativeContainer, auto_inject
+from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
 from tests.container_objects import Redis, Service, SomeService
 
 
@@ -48,3 +49,18 @@ async def _async_func(
 
 async def test_auto_inject_on_async_target():
     await _async_func(a=234, b="rnd")
+
+
+async def test_auto_inject_expect_error_on_duplicated_provider_types(container):
+    _mock_providers = [container.__dict__["redis"]]
+    _mock_providers.extend(
+        list(container._get_providers_generator()),
+    )
+
+    with mock.patch.object(
+        container,
+        "_get_providers_generator",
+        return_value=_mock_providers,
+    ):
+        with pytest.raises(DuplicatedFactoryTypeAutoInjectionError):
+            await _async_func(a=234, b="rnd")

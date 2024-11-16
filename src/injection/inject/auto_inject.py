@@ -114,14 +114,16 @@ def auto_inject(
     """Decorate callable with injecting decorator. Inject objects by types"""
 
     if target_container is None:
-        if len(DeclarativeContainer.__subclasses__()) > 1:
+        container_subclasses = DeclarativeContainer.__subclasses__()
+
+        if len(container_subclasses) > 1:
             msg = (
-                f"Found {len(DeclarativeContainer.__subclasses__())} containers, "
-                f"please specify the required container explicitly in the parameter 'target_container'"
+                f"Found {len(container_subclasses)} containers, please specify "
+                f"the required container explicitly in the parameter 'target_container'"
             )
             raise Exception(msg)
 
-        target_container = DeclarativeContainer.__subclasses__()[0]
+        target_container = container_subclasses[0]
 
     signature = inspect.signature(f)
     parameters = signature.parameters
