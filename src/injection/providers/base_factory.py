@@ -58,5 +58,4 @@ class BaseFactoryProvider(BaseProvider[T]):
         """
         final_args, final_kwargs = self._get_final_args_and_kwargs(*args, **kwargs)
         instance = self._factory(*final_args, **final_kwargs)
-        # return cast(Callable[P, T], instance)
         return instance
