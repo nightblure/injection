@@ -17,11 +17,6 @@ from injection.resolving import get_clean_args, get_clean_kwargs
 P = ParamSpec("P")
 T = TypeVar("T")
 
-# _FactoryType = Union[
-#     Callable[P, T],
-#     Callable[P, Awaitable[T]],
-# ]
-
 
 class BaseFactoryProvider(BaseProvider[T]):
     def __init__(
