@@ -3,7 +3,6 @@ from litestar import Litestar, get
 from litestar.di import Provide
 from litestar.testing import TestClient
 
-# from injection import Provide
 from tests.container_objects import Container, Redis
 
 

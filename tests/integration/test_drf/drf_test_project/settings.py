@@ -1,6 +1,5 @@
 from pathlib import Path
 
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tests.integration.test_drf.drf_test_project.settings')
 BASE_DIR = Path(__file__).resolve().parent
 
 SECRET_KEY = "django-insecure-u20tyumpwc)g21=fjy5nl9u@ih!28()dfvwr4%#cigz$ktop@^"  # noqa: S105
