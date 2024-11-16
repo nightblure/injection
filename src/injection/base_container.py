@@ -125,5 +125,5 @@ class DeclarativeContainer:
             if type_ is provider.factory:
                 return provider()
 
-        msg = f"Provider with type {str(type_)!r} not found"
+        msg = f"Provider with type {type_!s} not found"
         raise Exception(msg)
