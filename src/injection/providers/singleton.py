@@ -1,17 +1,20 @@
-from typing import Any, Optional, Type, TypeVar, cast
+from typing import Any, Callable, Optional, TypeVar, cast
+
+from typing_extensions import ParamSpec
 
 from injection.providers.base_factory import BaseFactoryProvider
 
+P = ParamSpec("P")
 T = TypeVar("T")
 
 
 class Singleton(BaseFactoryProvider[T]):
     """Global singleton object created only once"""
 
-    def __init__(self, type_cls: Type[T], *a: Any, **kw: Any) -> None:
+    def __init__(self, type_cls: Callable[P, T], *a: Any, **kw: Any) -> None:
         super().__init__(type_cls, *a, **kw)
-        self._instance: Optional[T] = None
         self.type_cls = type_cls
+        self._instance: Optional[T] = None
 
     def _resolve(self, *args: Any, **kwargs: Any) -> T:
         """https://python-dependency-injector.ets-labs.org/providers/factory.html
@@ -21,7 +24,8 @@ class Singleton(BaseFactoryProvider[T]):
         """
 
         if self._instance is None:
-            self._instance = cast(T, super()._resolve(*args, **kwargs))
+            instance = super()._resolve(*args, **kwargs)
+            self._instance = cast(T, instance)
 
         return self._instance
 

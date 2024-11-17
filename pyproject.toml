@@ -145,7 +145,7 @@ run-cov = "coverage run -m pytest{env:HATCH_TEST_ARGS:} {args}"
 cov-combine = "coverage combine"
 cov-report = [
   "coverage xml",
-  "coverage report"
+  "coverage report -m"
 ]
 
 [[tool.hatch.envs.hatch-test.matrix]]

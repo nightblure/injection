@@ -1,7 +1,7 @@
 import asyncio
 from dataclasses import dataclass, field
 
-from injection import DeclarativeContainer, Provide, inject, providers
+from injection import DeclarativeContainer, Provide, auto_inject, inject, providers
 
 
 @dataclass
@@ -67,13 +67,7 @@ class Container(DeclarativeContainer):
     some_service = providers.Singleton(SomeService, 1, redis, svc=service)
     num = providers.Object(settings.provided.nested_settings.some_const)
     num2 = providers.Object(9402)
-    partial_callable = providers.PartialCallable(func, 1, c="string", nums=num)
     callable_obj = providers.Callable(func, 1, c="string2", nums=num, d={"d": 500})
-    transient_obj = providers.Transient(
-        Redis,
-        port=settings.provided.redis_port,
-        url=settings.provided.redis_url,
-    )
     coroutine_provider = providers.Coroutine(coroutine, arg1=1, arg2=2)
 
 
@@ -86,7 +80,6 @@ def func_with_injections(
     svc1=Provide[Container.service],
     svc2=Provide[Container.some_service],
     numms=Provide[Container.num],
-    partial_callable_param=Provide[Container.partial_callable],
 ):
     _ = sfs
     _ = ddd
@@ -96,6 +89,44 @@ def func_with_injections(
     svc1.do_smth()
     svc2.do_smth()
 
-    partial_callable_result = partial_callable_param(d={"eparam": "eeeee"})
-    _ = partial_callable_result
+    return redis.url
+
+
+@auto_inject
+def func_with_auto_injections(
+    sfs,
+    redis: Redis,
+    *,
+    ddd,
+    svc1: Service,
+    svc2: SomeService,
+):
+    _ = sfs
+    _ = ddd
+
+    redis.get(1)
+    svc1.do_smth()
+    svc2.do_smth()
+
+    return redis.url
+
+
+@auto_inject
+def func_with_auto_injections_mixed(
+    sfs,
+    *,
+    ddd,
+    redis: Redis,
+    svc1: Service,
+    svc2: SomeService,
+    numms=Provide[Container.num],
+):
+    _ = sfs
+    _ = ddd
+    _ = numms
+
+    redis.get(1)
+    svc1.do_smth()
+    svc2.do_smth()
+
     return redis.url

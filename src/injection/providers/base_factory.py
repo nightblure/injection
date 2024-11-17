@@ -1,4 +1,3 @@
-import inspect
 from typing import (
     Any,
     Awaitable,
@@ -8,7 +7,6 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
 )
 
 from typing_extensions import ParamSpec
@@ -23,7 +21,7 @@ T = TypeVar("T")
 class BaseFactoryProvider(BaseProvider[T]):
     def __init__(
         self,
-        factory: Union[Callable[P, Awaitable[T]], Callable[P, T]],
+        factory: Callable[P, T],
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
@@ -32,6 +30,10 @@ class BaseFactoryProvider(BaseProvider[T]):
         self._kwargs = kwargs
         self._factory = factory
 
+    @property
+    def factory(self) -> Callable[P, T]:
+        return self._factory  # type: ignore
+
     def _get_final_args_and_kwargs(
         self,
         *args: Any,
@@ -39,14 +41,6 @@ class BaseFactoryProvider(BaseProvider[T]):
     ) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
         clean_args = get_clean_args(self._args)
         clean_kwargs = get_clean_kwargs(self._kwargs)
-
-        # Common solution for bug when litestar try to add kwargs with name 'args' and 'kwargs'
-        if len(args) > 0 or len(kwargs) > 0:
-            type_cls_init_signature = inspect.signature(self._factory)
-            parameters = type_cls_init_signature.parameters
-
-            args = tuple(arg for arg in args if arg in parameters)
-            kwargs = {arg: value for arg, value in kwargs.items() if arg in parameters}
 
         final_args: List[Any] = []
         final_args.extend(clean_args)
@@ -57,11 +51,11 @@ class BaseFactoryProvider(BaseProvider[T]):
         final_kwargs.update(kwargs)
         return tuple(final_args), final_kwargs
 
-    def _resolve(self, *args: Any, **kwargs: Any) -> Union[Callable[P, T], T]:
+    def _resolve(self, *args: Any, **kwargs: Any) -> Union[T, Awaitable[T]]:
         """
         Positional arguments are appended after Factory positional dependencies.
         Keyword arguments have the priority over the Factory keyword dependencies with the same name.
         """
         final_args, final_kwargs = self._get_final_args_and_kwargs(*args, **kwargs)
-        instance = cast(Callable[P, T], self._factory(*final_args, **final_kwargs))
+        instance = self._factory(*final_args, **final_kwargs)
         return instance

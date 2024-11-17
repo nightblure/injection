@@ -26,13 +26,14 @@
 
 Easy dependency injection for all, works with Python 3.8-3.12. Main features and advantages:
 * support **Python 3.8-3.12**;
-* works with **FastAPI, Flask, Litestar** and **Django REST Framework**;
+* works with **FastAPI, Flask** and **Django REST Framework**;
 * support dependency injection via `Annotated` in `FastAPI`;
 * the code is fully typed and checked with [mypy](https://github.com/python/mypy);
 * **no third-party dependencies**;
-* **multiple containers**;
-* **overriding** dependencies for tests without wiring;
-* **100%** code coverage and very simple code;
+* no wiring;
+* the life cycle of objects (**scope**) is implemented by providers;
+* **overriding** dependencies for testing;
+* **100%** code coverage;
 * good [documentation](https://injection.readthedocs.io/latest/);
 * intuitive and almost identical api with [dependency-injector](https://github.com/ets-labs/python-dependency-injector),
 which will allow you to easily migrate to injection
@@ -45,15 +46,18 @@ which will allow you to easily migrate to injection
 pip install deps-injection
 ```
 
-## Using example
+## Compatibility between web frameworks and injection features
+| Framework                                                                | Dependency injection with @inject | Dependency injection with @autoinject (_experimental_) | Overriding providers |
+|--------------------------------------------------------------------------|:---------------------------------:|:------------------------------------------------------:|:--------------------:|
+| [FastAPI](https://github.com/fastapi/fastapi)                            |                 ✅                 |                           ➖                            |          ✅           |
+| [Flask](https://github.com/pallets/flask)                                |                 ✅                 |                           ✅                            |          ✅           |
+| [Django REST Framework](https://github.com/encode/django-rest-framework) |                 ✅                 |                           ✅                            |          ✅           |
+| [Litestar](https://github.com/litestar-org/litestar)                     |                 ➖                 |                           ➖                            |          ➖           |
 
+
+## Using example with FastAPI
 ```python3
-import sys
-
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-else:
-    from typing import Annotated
+from typing import Annotated
 from unittest.mock import Mock
 
 import pytest
@@ -103,16 +107,10 @@ RedisDependency = Annotated[Redis, Depends(Provide[Container.redis])]
 def some_get_endpoint_handler(redis: RedisDependency):
     value = redis.get(299)
     return {"detail": value}
+```
 
-
-@router.post("/values")
-@inject
-async def some_get_async_endpoint_handler(redis: RedisDependency):
-    value = redis.get(399)
-    return {"detail": value}
-
-
-###################### TESTING ######################
+## Testing example with overriding providers for above FastAPI example
+```python3
 @pytest.fixture(scope="session")
 def app():
     return create_app()
@@ -144,7 +142,4 @@ def test_override_providers(test_client, container):
     assert response.status_code == 200
     body = response.json()
     assert body["detail"] == "mock_get_method"
-
 ```
-
----
