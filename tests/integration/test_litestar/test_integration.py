@@ -30,12 +30,9 @@ _handlers = [
     litestar_num_endpoint,
 ]
 
-app = Litestar(route_handlers=_handlers, pdb_on_exception=True)
+app = Litestar(route_handlers=_handlers, debug=True)
 
 
-@pytest.mark.xfail(
-    reason="litestar error - TypeError: __init__() got an unexpected keyword argument 'args'",
-)
 def test_litestar_endpoint_with_direct_provider_injection():
     with TestClient(app=app) as client:
         response = client.get("/some_resource")
@@ -44,7 +41,9 @@ def test_litestar_endpoint_with_direct_provider_injection():
     assert response.json() == {"detail": 800}
 
 
-@pytest.mark.xfail(reason="unknown")
+@pytest.mark.xfail(
+    reason="litestar error - TypeError: __init__() got an unexpected keyword argument 'args'",
+)
 def test_litestar_num_endpoint():
     with TestClient(app=app) as client:
         response = client.get("/num_endpoint")
@@ -58,7 +57,9 @@ class _RedisMock:
         return 192342526
 
 
-@pytest.mark.xfail(reason="unknown")
+@pytest.mark.xfail(
+    reason="TypeError: Unsupported type: <class 'tests.integration.test_litestar.test_integration._RedisMock'>",
+)
 def test_litestar_overriding_direct_provider_endpoint():
     with TestClient(app=app) as client:
         with Container.redis.override_context(_RedisMock()):
