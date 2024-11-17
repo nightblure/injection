@@ -26,12 +26,12 @@
 
 Easy dependency injection for all, works with Python 3.8-3.12. Main features and advantages:
 * support **Python 3.8-3.12**;
-* works with **FastAPI, Flask** and **Django REST Framework**;
+* works with **FastAPI, **Litestar**, Flask** and **Django REST Framework**;
 * support dependency injection via `Annotated` in `FastAPI`;
 * the code is fully typed and checked with [mypy](https://github.com/python/mypy);
 * **no third-party dependencies**;
-* no wiring;
-* the life cycle of objects (**scope**) is implemented by providers;
+* no **wiring**;
+* the life cycle of objects (**scope**) is implemented by **providers**;
 * **overriding** dependencies for testing;
 * **100%** code coverage;
 * good [documentation](https://injection.readthedocs.io/latest/);
@@ -47,12 +47,12 @@ pip install deps-injection
 ```
 
 ## Compatibility between web frameworks and injection features
-| Framework                                                                | Dependency injection with @inject | Dependency injection with @autoinject (_experimental_) | Overriding providers |
-|--------------------------------------------------------------------------|:---------------------------------:|:------------------------------------------------------:|:--------------------:|
-| [FastAPI](https://github.com/fastapi/fastapi)                            |                 ✅                 |                           ➖                            |          ✅           |
-| [Flask](https://github.com/pallets/flask)                                |                 ✅                 |                           ✅                            |          ✅           |
-| [Django REST Framework](https://github.com/encode/django-rest-framework) |                 ✅                 |                           ✅                            |          ✅           |
-| [Litestar](https://github.com/litestar-org/litestar)                     |                 ➖                 |                           ➖                            |          ➖           |
+| Framework                                                                | Dependency injection with or without @inject | Dependency injection with @autoinject (_experimental_) | Overriding providers |
+|--------------------------------------------------------------------------|:--------------------------------------------:|:------------------------------------------------------:|:--------------------:|
+| [FastAPI](https://github.com/fastapi/fastapi)                            |                      ✅                       |                           ➖                            |          ✅           |
+| [Flask](https://github.com/pallets/flask)                                |                      ✅                       |                           ✅                            |          ✅           |
+| [Django REST Framework](https://github.com/encode/django-rest-framework) |                      ✅                       |                           ✅                            |          ✅           |
+| [Litestar](https://github.com/litestar-org/litestar)                     |                      ✅                       |                           ➖                            |          ✅           |
 
 
 ## Using example with FastAPI

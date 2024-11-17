@@ -15,7 +15,9 @@ class Object(BaseProvider[T]):
         value = cast(T, resolve_value(self._obj))
         return value
 
-    def __call__(self) -> Union[T, Any]:
+    def __call__(self, **_: Any) -> Union[T, Any]:
+        # **_ - workaround for working DI with Litestar
+        # It's ok because there should be no arguments in the __call__ method
         if self._mocks:
             return self._mocks[-1]
         return self._resolve()

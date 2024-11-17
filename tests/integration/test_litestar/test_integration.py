@@ -1,53 +1,53 @@
-import pytest
+from typing import Any, Union
+from unittest.mock import Mock
+
 from litestar import Litestar, get
-from litestar.di import Provide
 from litestar.testing import TestClient
 
-from injection import inject
+from injection import Provide, inject
 from tests.container_objects import Container, Redis
 
 
 @get(
     "/some_resource",
     status_code=200,
-    dependencies={"redis": Provide(Container.redis)},
 )
 @inject
-async def litestar_endpoint_with_direct_provider_injection(redis: Redis) -> dict:
+async def litestar_endpoint(
+    redis: Union[Redis, Any] = Provide(Container.redis),  # noqa: B008
+    num: Union[int, Any] = Provide(Container.num2),  # noqa: B008
+) -> dict:
     value = redis.get(800)
-    return {"detail": value}
+    return {"detail": value, "num2": num}
 
 
 @get(
     "/num_endpoint",
     status_code=200,
-    dependencies={"num": Provide(Container.num2)},
 )
-async def litestar_endpoint_object_provider(num: int) -> dict:
+@inject
+async def litestar_endpoint_object_provider(
+    num: Union[int, Any] = Provide(Container.num2),  # noqa: B008
+) -> dict:
     return {"detail": num}
 
 
 _handlers = [
+    litestar_endpoint,
     litestar_endpoint_object_provider,
-    litestar_endpoint_with_direct_provider_injection,
 ]
 
-app_deps = {
-    # "redis": Provide(Container.redis),
-}
+app_deps = {}
 
 app = Litestar(route_handlers=_handlers, debug=True, dependencies=app_deps)
 
 
-@pytest.mark.xfail(
-    reason="TypeError: __init__() got an unexpected keyword argument 'args'",
-)
 def test_litestar_endpoint_with_direct_provider_injection():
     with TestClient(app=app) as client:
         response = client.get("/some_resource")
 
     assert response.status_code == 200
-    assert response.json() == {"detail": 800}
+    assert response.json() == {"detail": 800, "num2": 9402}
 
 
 def test_litestar_object_provider():
@@ -58,20 +58,22 @@ def test_litestar_object_provider():
     assert response.json() == {"detail": 9402}
 
 
-class _RedisMock:
-    def get(self, _):
-        return 192342526
-
-
-@pytest.mark.xfail(
-    reason="TypeError: Unsupported type: <class 'tests.integration.test_litestar.test_integration._RedisMock'>",
-)
 def test_litestar_overriding_direct_provider_endpoint():
-    mock_instance = _RedisMock()
+    mock_instance = Mock(get=lambda _: 192342526)
+    override_providers = {"redis": mock_instance, "num2": -2999999999}
 
     with TestClient(app=app) as client:
-        with Container.redis.override_context(mock_instance):
+        with Container.override_providers(override_providers):
             response = client.get("/some_resource")
 
     assert response.status_code == 200
-    assert response.json() == {"detail": 192342526}
+    assert response.json() == {"detail": 192342526, "num2": -2999999999}
+
+
+def test_litestar_endpoint_object_provider():
+    with TestClient(app=app) as client:
+        with Container.num2.override_context("mock_num2_value"):
+            response = client.get("/num_endpoint")
+
+    assert response.status_code == 200
+    assert response.json() == {"detail": "mock_num2_value"}
