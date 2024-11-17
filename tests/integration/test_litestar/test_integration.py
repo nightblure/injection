@@ -3,6 +3,7 @@ from litestar import Litestar, get
 from litestar.di import Provide
 from litestar.testing import TestClient
 
+from injection import inject
 from tests.container_objects import Container, Redis
 
 
@@ -11,6 +12,7 @@ from tests.container_objects import Container, Redis
     status_code=200,
     dependencies={"redis": Provide(Container.redis)},
 )
+@inject
 async def litestar_endpoint_with_direct_provider_injection(redis: Redis) -> dict:
     value = redis.get(800)
     return {"detail": value}
@@ -21,16 +23,20 @@ async def litestar_endpoint_with_direct_provider_injection(redis: Redis) -> dict
     status_code=200,
     dependencies={"num": Provide(Container.num2)},
 )
-async def litestar_num_endpoint(num: int) -> dict:
+async def litestar_endpoint_object_provider(num: int) -> dict:
     return {"detail": num}
 
 
 _handlers = [
+    litestar_endpoint_object_provider,
     litestar_endpoint_with_direct_provider_injection,
-    litestar_num_endpoint,
 ]
 
-app = Litestar(route_handlers=_handlers, debug=True)
+app_deps = {
+    # "redis": Provide(Container.redis),
+}
+
+app = Litestar(route_handlers=_handlers, debug=True, dependencies=app_deps)
 
 
 def test_litestar_endpoint_with_direct_provider_injection():
@@ -41,10 +47,7 @@ def test_litestar_endpoint_with_direct_provider_injection():
     assert response.json() == {"detail": 800}
 
 
-@pytest.mark.xfail(
-    reason="litestar error - TypeError: __init__() got an unexpected keyword argument 'args'",
-)
-def test_litestar_num_endpoint():
+def test_litestar_object_provider():
     with TestClient(app=app) as client:
         response = client.get("/num_endpoint")
 
@@ -61,8 +64,10 @@ class _RedisMock:
     reason="TypeError: Unsupported type: <class 'tests.integration.test_litestar.test_integration._RedisMock'>",
 )
 def test_litestar_overriding_direct_provider_endpoint():
+    mock_instance = _RedisMock()
+
     with TestClient(app=app) as client:
-        with Container.redis.override_context(_RedisMock()):
+        with Container.redis.override_context(mock_instance):
             response = client.get("/some_resource")
 
     assert response.status_code == 200
