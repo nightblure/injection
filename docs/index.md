@@ -35,7 +35,7 @@
 
     integration-with-web-frameworks/fastapi
     integration-with-web-frameworks/flask
-    integration-with-web-frameworks/litestart
+    integration-with-web-frameworks/litestar
     integration-with-web-frameworks/drf
 
 .. toctree::

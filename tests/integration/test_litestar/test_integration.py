@@ -15,9 +15,10 @@ from tests.container_objects import Container, Redis
 @inject
 async def litestar_endpoint(
     redis: Union[Redis, Any] = Provide(Container.redis),  # noqa: B008
+    num: Union[int, Any] = Provide(Container.num2),  # noqa: B008
 ) -> dict:
     value = redis.get(800)
-    return {"detail": value}
+    return {"detail": value, "num2": num}
 
 
 @get(
@@ -46,7 +47,7 @@ def test_litestar_endpoint_with_direct_provider_injection():
         response = client.get("/some_resource")
 
     assert response.status_code == 200
-    assert response.json() == {"detail": 800}
+    assert response.json() == {"detail": 800, "num2": 9402}
 
 
 def test_litestar_object_provider():
@@ -59,13 +60,14 @@ def test_litestar_object_provider():
 
 def test_litestar_overriding_direct_provider_endpoint():
     mock_instance = Mock(get=lambda _: 192342526)
+    override_providers = {"redis": mock_instance, "num2": -2999999999}
 
     with TestClient(app=app) as client:
-        with Container.redis.override_context(mock_instance):
+        with Container.override_providers(override_providers):
             response = client.get("/some_resource")
 
     assert response.status_code == 200
-    assert response.json() == {"detail": 192342526}
+    assert response.json() == {"detail": 192342526, "num2": -2999999999}
 
 
 def test_litestar_endpoint_object_provider():
