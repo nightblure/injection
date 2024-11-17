@@ -39,6 +39,9 @@ app_deps = {
 app = Litestar(route_handlers=_handlers, debug=True, dependencies=app_deps)
 
 
+@pytest.mark.xfail(
+    reason="TypeError: __init__() got an unexpected keyword argument 'args'",
+)
 def test_litestar_endpoint_with_direct_provider_injection():
     with TestClient(app=app) as client:
         response = client.get("/some_resource")

@@ -36,7 +36,7 @@ async def _async_func(
     redis: Redis,
     *,
     a: int,
-    b: str,
+    b: str = "asdsd",
     svc: Service,
     another_svc: SomeService,
 ):
