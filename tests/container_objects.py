@@ -27,8 +27,10 @@ class Redis:
 
 
 class Service:
-    def __init__(self, redis_client: Redis):
+    def __init__(self, redis_client: Redis, a=1, b="b"):
         self.redis_client = redis_client
+        self.a = a
+        self.b = b
 
     def do_smth(self):
         return "Doing smth"
