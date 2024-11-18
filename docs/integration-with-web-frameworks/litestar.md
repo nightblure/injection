@@ -1,12 +1,15 @@
 # Litestar
 
-By now you should have a container with providers.
-Now all you have to do is define request handlers according to the following rules:
+In order to successfully inject dependencies into Litestar request handlers,
+make sure that the following points are completed:
 1. use **@inject** decorator **before** http-method Litestar decorator;
 
 2. added for each injected parameter to the request handler a typing of the form
 `Union[<your type>, Any]` for Python versions below 3.10 or `<your type> | Any`,
-as well as the `Provide` marker from the `injection` package indicating the provider
+
+3. use the `Provide` marker from the `injection` (not from Litestar) package indicating the provider
+
+---
 
 ## Example
 
@@ -42,8 +45,8 @@ class Container(DeclarativeContainer):
 )
 @inject
 async def litestar_endpoint(
-    redis: Union[Redis, Any] = Provide(Container.redis),
-    num: Union[int, Any] = Provide(Container.num),
+    redis: Union[Redis, Any] = Provide[Container.redis],
+    num: Union[int, Any] = Provide[Container.num],
 ) -> dict:
     value = redis.get(800)
     return {"detail": value, "num2": num}
@@ -55,7 +58,7 @@ async def litestar_endpoint(
 )
 @inject
 async def litestar_endpoint_object_provider(
-    num: Union[int, Any] = Provide(Container.num),
+    num: Union[int, Any] = Provide[Container.num],
 ) -> dict:
     return {"detail": num}
 

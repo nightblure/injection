@@ -14,8 +14,8 @@ from tests.container_objects import Container, Redis
 )
 @inject
 async def litestar_endpoint(
-    redis: Union[Redis, Any] = Provide(Container.redis),  # noqa: B008
-    num: Union[int, Any] = Provide(Container.num2),  # noqa: B008
+    redis: Union[Redis, Any] = Provide[Container.redis],
+    num: Union[int, Any] = Provide[Container.num2],
 ) -> dict:
     value = redis.get(800)
     return {"detail": value, "num2": num}
@@ -27,7 +27,7 @@ async def litestar_endpoint(
 )
 @inject
 async def litestar_endpoint_object_provider(
-    num: Union[int, Any] = Provide(Container.num2),  # noqa: B008
+    num: Union[int, Any] = Provide[Container.num2],
 ) -> dict:
     return {"detail": num}
 
