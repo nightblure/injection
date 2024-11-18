@@ -3,7 +3,10 @@ from unittest import mock
 import pytest
 
 from injection import DeclarativeContainer, auto_inject
-from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
+from injection.inject.exceptions import (
+    DuplicatedFactoryTypeAutoInjectionError,
+    UnknownProviderTypeAutoInjectionError,
+)
 from tests.container_objects import Redis, Service, SomeService
 
 
@@ -64,3 +67,56 @@ async def test_auto_inject_expect_error_on_duplicated_provider_types(container):
     ):
         with pytest.raises(DuplicatedFactoryTypeAutoInjectionError):
             await _async_func(a=234, b="rnd")
+
+
+def test_auto_injection_with_args_overriding(container) -> None:
+    @auto_inject
+    def _inner(
+        arg1: bool,  # noqa: FBT001
+        arg2: Service,
+        arg3: int = 100,
+    ) -> None:
+        _ = arg1
+        _ = arg3
+        original_obj = container.service()
+        assert arg2.a != original_obj.a
+        assert arg2.b != original_obj.b
+
+    _inner(True, container.service(b="url", a=2000))  # noqa: FBT003
+    _inner(arg1=True, arg2=container.service(b="urljyfuf", a=8400))
+    _inner(True, arg2=container.service(b="afdsfsf", a=2242))  # noqa: FBT003
+
+
+async def test_auto_injection_with_args_overriding_async(container) -> None:
+    @auto_inject
+    async def _inner(
+        arg1: bool,  # noqa: FBT001
+        arg2: Service,
+        arg3: int = 100,
+    ) -> int:
+        _ = arg1
+        _ = arg3
+        original_obj = container.service()
+        assert arg2.a != original_obj.a
+        assert arg2.b != original_obj.b
+        return arg3
+
+    assert await _inner(True, container.service(b="url", a=2000)) == 100  # noqa: FBT003
+    assert await _inner(arg1=True, arg2=container.service(b="url", a=2000)) == 100
+    assert await _inner(True, arg2=container.service(b="url", a=2000)) == 100  # noqa: FBT003
+
+
+def test_auto_injection_expect_error_on_unknown_provider():
+    @auto_inject
+    def inner(_: object): ...
+
+    with pytest.raises(UnknownProviderTypeAutoInjectionError):
+        inner()
+
+
+async def test_auto_injection_expect_error_on_unknown_provider_async():
+    @auto_inject
+    async def inner(_: object): ...
+
+    with pytest.raises(UnknownProviderTypeAutoInjectionError):
+        await inner()

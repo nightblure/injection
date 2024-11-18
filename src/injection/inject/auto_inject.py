@@ -4,8 +4,6 @@ from functools import wraps
 from typing import Any, Callable, Coroutine, Dict, Optional, Type, TypeVar, Union, cast
 
 from injection.base_container import DeclarativeContainer
-from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
-from injection.inject.inject import _resolve_markers
 from injection.provide import Provide
 
 if sys.version_info < (3, 10):
@@ -19,59 +17,29 @@ Markers = Dict[str, Provide]
 _ContainerType = Union[Type[DeclarativeContainer], DeclarativeContainer]
 
 
-def _resolve_signature_args_with_types_from_container(
-    *,
-    signature: inspect.Signature,
-    target_container: _ContainerType,
-) -> Dict[str, Any]:
-    resolved_signature_typed_args = {}
-
-    for param_name, param in signature.parameters.items():
-        if not (param.annotation is not param.empty and param.default is param.empty):
-            continue
-
-        try:
-            resolved = target_container.resolve_by_type(param.annotation)
-            resolved_signature_typed_args[param_name] = resolved
-        except DuplicatedFactoryTypeAutoInjectionError:
-            raise
-
-        # Ignore exceptions for cases for example django rest framework
-        # endpoint may have parameter 'request' - we don't know how to handle a variety of parameters.
-        # But anyway, after this the runtime will fail with an error if something goes wrong
-        except Exception:  # noqa: S112
-            continue
-
-    return resolved_signature_typed_args
-
-
 def _get_sync_injected(
     *,
     f: Callable[P, T],
-    markers: Markers,
     signature: inspect.Signature,
     target_container: _ContainerType,
 ) -> Callable[P, T]:
     @wraps(f)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        resolved_signature_typed_args = (
-            _resolve_signature_args_with_types_from_container(
-                signature=signature,
-                target_container=target_container,
-            )
-        )
+        resolved_signature_typed_args = {}
 
-        provide_markers = {
-            k: v
-            for k, v in kwargs.items()
-            if k not in markers and isinstance(v, Provide)
-        }
-        provide_markers.update(markers)
-        resolved_values = _resolve_markers(provide_markers)
+        for i, (param_name, param) in enumerate(signature.parameters.items()):
+            if i < len(args) or param_name in kwargs:
+                continue
 
-        kwargs.update(resolved_values)
-        kwargs.update(resolved_signature_typed_args)
-        return f(*args, **kwargs)
+            if not (
+                param.annotation is not param.empty and param.default is param.empty
+            ):
+                continue
+
+            resolved = target_container.resolve_by_type(param.annotation)
+            resolved_signature_typed_args[param_name] = resolved
+
+        return f(*args, **resolved_signature_typed_args, **kwargs)
 
     return wrapper
 
@@ -79,30 +47,26 @@ def _get_sync_injected(
 def _get_async_injected(
     *,
     f: Callable[P, Coroutine[Any, Any, T]],
-    markers: Markers,
     signature: inspect.Signature,
     target_container: _ContainerType,
 ) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(f)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        resolved_signature_typed_args = (
-            _resolve_signature_args_with_types_from_container(
-                signature=signature,
-                target_container=target_container,
-            )
-        )
+        resolved_signature_typed_args = {}
 
-        provide_markers = {
-            k: v
-            for k, v in kwargs.items()
-            if k not in markers and isinstance(v, Provide)
-        }
-        provide_markers.update(markers)
-        resolved_values = _resolve_markers(provide_markers)
+        for i, (param_name, param) in enumerate(signature.parameters.items()):
+            if i < len(args) or param_name in kwargs:
+                continue
 
-        kwargs.update(resolved_values)
-        kwargs.update(resolved_signature_typed_args)
-        return await f(*args, **kwargs)
+            if not (
+                param.annotation is not param.empty and param.default is param.empty
+            ):
+                continue
+
+            resolved = target_container.resolve_by_type(param.annotation)
+            resolved_signature_typed_args[param_name] = resolved
+
+        return await f(*args, **resolved_signature_typed_args, **kwargs)
 
     return wrapper
 
@@ -126,18 +90,10 @@ def auto_inject(
         target_container = container_subclasses[0]
 
     signature = inspect.signature(f)
-    parameters = signature.parameters
-
-    markers = {
-        parameter_name: parameter_value.default
-        for parameter_name, parameter_value in parameters.items()
-        if isinstance(parameter_value.default, Provide)
-    }
 
     if inspect.iscoroutinefunction(f):
         func_with_injected_params = _get_async_injected(
             f=f,
-            markers=markers,
             signature=signature,
             target_container=target_container,
         )
@@ -145,7 +101,6 @@ def auto_inject(
 
     return _get_sync_injected(
         f=f,
-        markers=markers,
         signature=signature,
         target_container=target_container,
     )

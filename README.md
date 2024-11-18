@@ -47,12 +47,12 @@ pip install deps-injection
 ```
 
 ## Compatibility between web frameworks and injection features
-| Framework                                                                |    Dependency injection with @inject     | Overriding providers | Dependency injection with @autoinject (_experimental_) |
-|--------------------------------------------------------------------------|:----------------------------------------:|:--------------------:|:------------------------------------------------------:|
-| [FastAPI](https://github.com/fastapi/fastapi)                            |                    ✅                     |          ✅           |                           ➖                            |
-| [Flask](https://github.com/pallets/flask)                                |                    ✅                     |          ✅           |                           ✅                            |
-| [Django REST Framework](https://github.com/encode/django-rest-framework) |                    ✅                     |          ✅           |                           ✅                            |
-| [Litestar](https://github.com/litestar-org/litestar)                     |                    ✅                     |          ✅           |                           ➖                            |
+| Framework                                                                | Dependency injection with @inject | Overriding providers |    Dependency injection with @autoinject    |
+|--------------------------------------------------------------------------|:---------------------------------:|:--------------------:|:-------------------------------------------:|
+| [FastAPI](https://github.com/fastapi/fastapi)                            |                 ✅                 |          ✅           |                      ➖                      |
+| [Flask](https://github.com/pallets/flask)                                |                 ✅                 |          ✅           |                      ✅                      |
+| [Django REST Framework](https://github.com/encode/django-rest-framework) |                 ✅                 |          ✅           |                      ✅                      |
+| [Litestar](https://github.com/litestar-org/litestar)                     |                 ✅                 |          ⚠️          |                      ➖                      |                           ➖                            |
 
 
 ## Using example with FastAPI

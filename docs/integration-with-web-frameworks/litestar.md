@@ -1,11 +1,11 @@
-# Litestar
+# Using with Litestar
 
 In order to successfully inject dependencies into Litestar request handlers,
 make sure that the following points are completed:
 1. use **@inject** decorator **before** http-method Litestar decorator;
 
-2. added for each injected parameter to the request handler a typing of the form
-`Union[<your type>, Any]` for Python versions below 3.10 or `<your type> | Any`,
+2. ⚠️ added for each injected parameter to the request handler a typing of the form
+`Union[<your type>, Any]` for Python versions below 3.10 or `<your type> | Any`;
 
 3. use the `Provide` marker from the `injection` (not from Litestar) package indicating the provider
 

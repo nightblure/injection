@@ -3,7 +3,10 @@ from collections import defaultdict
 from contextlib import contextmanager
 from typing import Any, Callable, Dict, Iterator, List, Optional, Type, TypeVar, cast
 
-from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
+from injection.inject.exceptions import (
+    DuplicatedFactoryTypeAutoInjectionError,
+    UnknownProviderTypeAutoInjectionError,
+)
 from injection.providers import Singleton
 from injection.providers.base import BaseProvider
 from injection.providers.base_factory import BaseFactoryProvider
@@ -125,5 +128,4 @@ class DeclarativeContainer:
             if type_ is provider.factory:
                 return provider()
 
-        msg = f"Provider with type {type_!s} not found"
-        raise Exception(msg)
+        raise UnknownProviderTypeAutoInjectionError(str(type_))
