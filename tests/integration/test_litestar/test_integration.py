@@ -1,7 +1,8 @@
 from typing import Any, Union
 from unittest.mock import Mock
 
-from litestar import Litestar, get
+import pytest
+from litestar import Controller, Litestar, get
 from litestar.testing import TestClient
 
 from injection import Provide, inject
@@ -32,14 +33,30 @@ async def litestar_endpoint_object_provider(
     return {"detail": num}
 
 
-_handlers = [
+class LitestarController(Controller):
+    path = "/controller"
+
+    @get(path="/resource/{redis_key:int}")
+    @inject
+    def controller_endpoint(
+        self,
+        redis_key: int,
+        redis: Union[Redis, Any] = Provide[Container.redis],
+        num: Union[int, Any] = Provide[Container.num2],
+    ) -> dict:
+        value = redis.get(redis_key)
+        return {"detail": value, "num2": num}
+
+
+handlers = [
     litestar_endpoint,
+    LitestarController,
     litestar_endpoint_object_provider,
 ]
 
 app_deps = {}
 
-app = Litestar(route_handlers=_handlers, debug=True, dependencies=app_deps)
+app = Litestar(route_handlers=handlers, debug=True, dependencies=app_deps)
 
 
 def test_litestar_endpoint_with_direct_provider_injection():
@@ -48,6 +65,22 @@ def test_litestar_endpoint_with_direct_provider_injection():
 
     assert response.status_code == 200
     assert response.json() == {"detail": 800, "num2": 9402}
+
+
+@pytest.mark.parametrize(
+    "path_param",
+    [
+        -100,
+        24234,
+        -5,
+    ],
+)
+def test_litestar_controller_endpoint(path_param: int):
+    with TestClient(app=app) as client:
+        response = client.get(f"/controller/resource/{path_param}")
+
+    assert response.status_code == 200
+    assert response.json() == {"detail": path_param, "num2": 9402}
 
 
 def test_litestar_object_provider():
