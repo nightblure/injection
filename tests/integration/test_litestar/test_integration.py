@@ -38,7 +38,7 @@ class LitestarController(Controller):
 
     @get(path="/resource/{redis_key:int}")
     @inject
-    def controller_endpoint(
+    async def controller_endpoint(
         self,
         redis_key: int,
         redis: Union[Redis, Any] = Provide[Container.redis],
