@@ -18,6 +18,22 @@ class SomeClass: ...
         (234525, int),
     ],
 )
-def test_object_provider_resolving(obj, expected):
+def test_object_provider_resolve_with_expected_type(obj, expected):
     provider = providers.Object(obj)
+
     assert isinstance(provider(), expected)
+
+
+@pytest.mark.parametrize(
+    ("obj", "expected"),
+    [
+        (type, type),
+        (234525, 234525),
+        (object, object),
+        ("some_class", "some_class"),
+    ],
+)
+def test_object_provider_resolve_with_expected_value(obj, expected):
+    provider = providers.Object(obj)
+
+    assert provider() == expected
