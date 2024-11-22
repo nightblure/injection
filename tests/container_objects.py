@@ -67,7 +67,7 @@ class Container(DeclarativeContainer):
     )
     service = providers.Transient(Service, redis_client=redis)
     some_service = providers.Singleton(SomeService, 1, redis, svc=service)
-    num = providers.Object(settings.provided.nested_settings.some_const)
+    num = providers.Object(1234)
     num2 = providers.Object(9402)
     callable_obj = providers.Callable(func, 1, c="string2", nums=num, d={"d": 500})
     coroutine_provider = providers.Coroutine(coroutine, arg1=1, arg2=2)

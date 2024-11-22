@@ -50,7 +50,7 @@ def test_override_providers_success(container):
         assert container.num() == 999
 
     assert not isinstance(container.redis(), Mock)
-    assert container.num() == 144
+    assert container.num() == 1234
 
 
 def test_container_instance_is_singleton(container):

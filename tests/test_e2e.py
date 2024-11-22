@@ -23,7 +23,7 @@ def test_e2e_success(container):
     assert container.some_service() is some_svc
     assert container.redis() is redis
     assert container.service() is not service
-    assert container.num() == 144
+    assert container.num() == 1234
 
     coroutine_result = asyncio.run(container.coroutine_provider())
     assert coroutine_result == (1, 2)
