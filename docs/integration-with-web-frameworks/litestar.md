@@ -2,10 +2,10 @@
 
 In order to successfully inject dependencies into Litestar request handlers,
 make sure that the following points are completed:
-1. use **@inject** decorator **before** http-method Litestar decorator;
+1. use `@inject` decorator **before** http-method `Litestar` decorator;
 
-2. ⚠️ added for each injected parameter to the request handler a typing of the form
-`Union[<your type>, Any]` for Python versions below 3.10 or `<your type> | Any`;
+2. added for each injected parameter to the request handler a typing of the form
+`Annotated[<your type>, Dependency(skip_validation=True)]`. `Dependency` is object from `litestar.params`;
 
 3. use the `Provide` marker from the `injection` (not from Litestar) package indicating the provider
 
@@ -14,10 +14,17 @@ make sure that the following points are completed:
 ## Example
 
 ```python3
-from typing import Any, Union
+from functools import partial
+from unittest.mock import Mock
+from typing import Annotated
 
-from litestar import Litestar, get
 from injection import Provide, inject, DeclarativeContainer, providers
+from litestar import Litestar, get
+from litestar.params import Dependency
+from litestar.testing import TestClient
+
+
+_NoValidationDependency = partial(Dependency, skip_validation=True)
 
 
 class Redis:
@@ -45,8 +52,8 @@ class Container(DeclarativeContainer):
 )
 @inject
 async def litestar_endpoint(
-    redis: Union[Redis, Any] = Provide[Container.redis],
-    num: Union[int, Any] = Provide[Container.num],
+    num: Annotated[int, _NoValidationDependency()] = Provide[Container.num],
+    redis: Annotated[Redis, _NoValidationDependency()] = Provide[Container.redis],
 ) -> dict:
     value = redis.get(800)
     return {"detail": value, "num2": num}
@@ -58,7 +65,7 @@ async def litestar_endpoint(
 )
 @inject
 async def litestar_endpoint_object_provider(
-    num: Union[int, Any] = Provide[Container.num],
+    num: Annotated[int, _NoValidationDependency()] = Provide[Container.num],
 ) -> dict:
     return {"detail": num}
 
@@ -69,4 +76,18 @@ _handlers = [
 ]
 
 app = Litestar(route_handlers=_handlers)
+
+# Testing
+
+def test_litestar_overriding():
+    mock_instance = Mock(get=lambda _: 192342526)
+    override_providers = {"redis": mock_instance, "num": -2999999999}
+
+    with TestClient(app=app) as client:
+        with Container.override_providers(override_providers):
+            response = client.get("/some_resource")
+
+    assert response.status_code == 200
+    assert response.json() == {"detail": 192342526, "num2": -2999999999}
+
 ```
