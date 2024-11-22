@@ -1,12 +1,22 @@
+import sys
+from functools import partial
 from typing import Any, Union
 from unittest.mock import Mock
 
 import pytest
 from litestar import Controller, Litestar, get
+from litestar.params import Dependency
 from litestar.testing import TestClient
 
 from injection import Provide, inject
 from tests.container_objects import Container, Redis
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+else:
+    from typing_extensions import Annotated
+
+_NoValidationDependency = partial(Dependency, skip_validation=True)
 
 
 @get(
@@ -15,8 +25,8 @@ from tests.container_objects import Container, Redis
 )
 @inject
 async def litestar_endpoint(
-    redis: Union[Redis, Any] = Provide[Container.redis],
-    num: Union[int, Any] = Provide[Container.num2],
+    redis: Annotated[Redis, _NoValidationDependency()] = Provide[Container.redis],
+    num: Annotated[int, _NoValidationDependency()] = Provide[Container.num2],
 ) -> dict:
     value = redis.get(800)
     return {"detail": value, "num2": num}
@@ -41,8 +51,8 @@ class LitestarController(Controller):
     async def controller_endpoint(
         self,
         redis_key: int,
-        redis: Union[Redis, Any] = Provide[Container.redis],
-        num: Union[int, Any] = Provide[Container.num2],
+        redis: Annotated[Redis, _NoValidationDependency()] = Provide[Container.redis],
+        num: Annotated[int, _NoValidationDependency()] = Provide[Container.num2],
     ) -> dict:
         value = redis.get(redis_key)
         return {"detail": value, "num2": num}

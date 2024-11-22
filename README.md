@@ -52,7 +52,7 @@ pip install deps-injection
 | [FastAPI](https://github.com/fastapi/fastapi)                            |                 ✅                 |          ✅           |                      ➖                      |
 | [Flask](https://github.com/pallets/flask)                                |                 ✅                 |          ✅           |                      ✅                      |
 | [Django REST Framework](https://github.com/encode/django-rest-framework) |                 ✅                 |          ✅           |                      ✅                      |
-| [Litestar](https://github.com/litestar-org/litestar)                     |                 ✅                 |          ⚠️          |                      ➖                      |                           ➖                            |
+| [Litestar](https://github.com/litestar-org/litestar)                     |                 ✅                 |          ✅           |                      ➖                      |                           ➖                            |
 
 
 ## Using example with FastAPI
