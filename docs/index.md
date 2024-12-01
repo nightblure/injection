@@ -21,11 +21,11 @@
     :maxdepth: 1
     :caption: Providers
 
+    providers/factory
     providers/transient
-    providers/callable
-    providers/partial_callable
     providers/coroutine
     providers/singleton
+    providers/resource
     providers/object
     providers/provided_instance
 
@@ -46,7 +46,7 @@
 
 .. toctree::
     :maxdepth: 1
-    :caption: DEV section
+    :caption: Development
 
     dev/migration-from-dependency-injector
     dev/contributing
