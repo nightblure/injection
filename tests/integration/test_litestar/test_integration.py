@@ -1,6 +1,6 @@
 import sys
 from functools import partial
-from typing import Any, Union
+from typing import Any, Dict, Final, List
 from unittest.mock import Mock
 
 import pytest
@@ -27,7 +27,7 @@ _NoValidationDependency = partial(Dependency, skip_validation=True)
 async def litestar_endpoint(
     redis: Annotated[Redis, _NoValidationDependency()] = Provide[Container.redis],
     num: Annotated[int, _NoValidationDependency()] = Provide[Container.num2],
-) -> dict:
+) -> Dict[str, Any]:
     value = redis.get(800)
     return {"detail": value, "num2": num}
 
@@ -38,8 +38,8 @@ async def litestar_endpoint(
 )
 @inject
 async def litestar_endpoint_object_provider(
-    num: Union[int, Any] = Provide[Container.num2],
-) -> dict:
+    num: Annotated[int, _NoValidationDependency()] = Provide[Container.num2],
+) -> Dict[str, Any]:
     return {"detail": num}
 
 
@@ -53,23 +53,23 @@ class LitestarController(Controller):
         redis_key: int,
         redis: Annotated[Redis, _NoValidationDependency()] = Provide[Container.redis],
         num: Annotated[int, _NoValidationDependency()] = Provide[Container.num2],
-    ) -> dict:
+    ) -> Dict[str, Any]:
         value = redis.get(redis_key)
         return {"detail": value, "num2": num}
 
 
-handlers = [
+handlers: Final[List[Any]] = [
     litestar_endpoint,
     LitestarController,
     litestar_endpoint_object_provider,
 ]
 
-app_deps = {}
+app_deps: Final[Dict[str, Any]] = {}
 
 app = Litestar(route_handlers=handlers, debug=True, dependencies=app_deps)
 
 
-def test_litestar_endpoint_with_direct_provider_injection():
+def test_litestar_endpoint_with_direct_provider_injection() -> None:
     with TestClient(app=app) as client:
         response = client.get("/some_resource")
 
@@ -85,7 +85,7 @@ def test_litestar_endpoint_with_direct_provider_injection():
         -5,
     ],
 )
-def test_litestar_controller_endpoint(path_param: int):
+def test_litestar_controller_endpoint(path_param: int) -> None:
     with TestClient(app=app) as client:
         response = client.get(f"/controller/resource/{path_param}")
 
@@ -93,7 +93,7 @@ def test_litestar_controller_endpoint(path_param: int):
     assert response.json() == {"detail": path_param, "num2": 9402}
 
 
-def test_litestar_object_provider():
+def test_litestar_object_provider() -> None:
     with TestClient(app=app) as client:
         response = client.get("/num_endpoint")
 
@@ -101,7 +101,7 @@ def test_litestar_object_provider():
     assert response.json() == {"detail": 9402}
 
 
-def test_litestar_overriding_direct_provider_endpoint():
+def test_litestar_overriding_direct_provider_endpoint() -> None:
     mock_instance = Mock(get=lambda _: 192342526)
     override_providers = {"redis": mock_instance, "num2": -2999999999}
 
@@ -113,7 +113,7 @@ def test_litestar_overriding_direct_provider_endpoint():
     assert response.json() == {"detail": 192342526, "num2": -2999999999}
 
 
-def test_litestar_endpoint_object_provider():
+def test_litestar_endpoint_object_provider() -> None:
     with TestClient(app=app) as client:
         with Container.num2.override_context("mock_num2_value"):
             response = client.get("/num_endpoint")

@@ -28,6 +28,3 @@ To **migrate**, follow these **steps**:
 * `from dependency_injector.containers import DeclarativeContainer` -> `from injection import DeclarativeContainer`;
 
 2. **Replace argument unpacking in the `override_providers` method call with direct argument passing**: `some_container.override_providers(**overrides)` -> `some_container.override_providers(overrides)`;
-
-
-3. **Replace the Factory provider with Transient**: `providers.Factory` -> `providers.Transient`'.

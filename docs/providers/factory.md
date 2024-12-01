@@ -1,7 +1,6 @@
-# Transient
+# Factory
 
-**Transient** provider creates and returns a **new object for each call**.
-You can pass any **callable** object as the first parameter.
+**Factory** works exactly same as **Transient** provider.
 
 Also supports **asynchronous** dependencies.
 
@@ -25,17 +24,17 @@ async def coroutine_func(arg1: int, arg2: int) -> Tuple[int, int]:
 
 class DIContainer(DeclarativeContainer):
     coroutine = providers.Coroutine(coroutine_func, arg1=1, arg2=2)
-    sync_transient = providers.Transient(SomeClass, field=(10, 20))
-    async_transient = providers.Transient(SomeClass, field=coroutine)
+    sync_factory = providers.Factory(SomeClass, field=(10, 20))
+    async_factory = providers.Factory(SomeClass, field=coroutine)
 
 
 async def main() -> None:
-    instance = await DIContainer.async_transient.async_resolve()
+    instance = await DIContainer.async_factory.async_resolve()
     assert instance.field == (1, 2)
 
 
-instance1 = DIContainer.sync_transient()
-instance2 = DIContainer.sync_transient()
+instance1 = DIContainer.sync_factory()
+instance2 = DIContainer.sync_factory()
 
 assert instance1 is not instance2
 

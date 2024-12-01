@@ -7,18 +7,18 @@ from injection import Provide, auto_inject, inject
 from tests.container_objects import Container, Redis
 
 
-class PostEndpointBodySerializer(serializers.Serializer):
+class PostEndpointBodySerializer(serializers.Serializer):  # type:ignore[misc]
     key = serializers.IntegerField()
 
 
-class View(APIView):
+class View(APIView):  # type:ignore[misc]
     @inject
-    def get(self, _: Request, redis: Redis = Provide[Container.redis]):
+    def get(self, _: Request, redis: Redis = Provide[Container.redis]) -> Response:
         response_body = {"redis_url": redis.url}
         return Response(response_body, status=status.HTTP_200_OK)
 
     @auto_inject
-    def post(self, request: Request, redis: Redis):
+    def post(self, request: Request, redis: Redis) -> Response:
         body_serializer = PostEndpointBodySerializer(data=request.data)
         body_serializer.is_valid()
 

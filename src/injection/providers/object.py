@@ -1,4 +1,4 @@
-from typing import Any, TypeVar, Union
+from typing import TypeVar, cast
 
 from injection.providers.base import BaseProvider
 
@@ -13,7 +13,7 @@ class Object(BaseProvider[T]):
     def _resolve(self) -> T:
         return self._obj
 
-    def __call__(self) -> Union[T, Any]:
+    def __call__(self) -> T:
         if self._mocks:
-            return self._mocks[-1]
+            return cast(T, self._mocks[-1])
         return self._resolve()

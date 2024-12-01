@@ -1,13 +1,17 @@
+import sys
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from typing import Any, Generic, Iterator, List, TypeVar, Union
+from typing import Any, Generic, Iterator, List, TypeVar, cast
 
-from typing_extensions import ParamSpec
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
 
 from injection.provided import ProvidedInstance
 
-T = TypeVar("T")
 P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class BaseProvider(Generic[T], ABC):
@@ -15,12 +19,20 @@ class BaseProvider(Generic[T], ABC):
         self._mocks: List[Any] = []
 
     @abstractmethod
-    def _resolve(self, *args: Any, **kwargs: Any) -> Any:
+    def _resolve(self, *args: Any, **kwargs: Any) -> T:
         raise NotImplementedError
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Union[T, Any]:
+    async def _async_resolve(self, *args: Any, **kwargs: Any) -> T:
+        return self._resolve(*args, **kwargs)
+
+    async def async_resolve(self, *args: Any, **kwargs: Any) -> T:
         if self._mocks:
-            return self._mocks[-1]
+            return cast(T, self._mocks[-1])
+        return await self._async_resolve(*args, **kwargs)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> T:
+        if self._mocks:
+            return cast(T, self._mocks[-1])
         return self._resolve(*args, **kwargs)
 
     @property
@@ -43,3 +55,8 @@ class BaseProvider(Generic[T], ABC):
             return
 
         self._mocks.pop(-1)
+
+    @property
+    def cast(self) -> T:
+        """Helps to avoid type checker mistakes"""
+        return cast(T, self)

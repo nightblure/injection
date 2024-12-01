@@ -1,3 +1,4 @@
+from typing import Any, List, Type
 from unittest import mock
 
 import pytest
@@ -7,7 +8,7 @@ from injection.inject.exceptions import (
     DuplicatedFactoryTypeAutoInjectionError,
     UnknownProviderTypeAutoInjectionError,
 )
-from tests.container_objects import Redis, Service, SomeService
+from tests.container_objects import Container, Redis, Service, SomeService
 
 
 @pytest.mark.parametrize(
@@ -18,8 +19,8 @@ from tests.container_objects import Redis, Service, SomeService
     ],
 )
 def test_auto_inject_expect_error_with_more_than_one_di_container_and_empty_target_container_param(
-    subclasses: list,
-):
+    subclasses: List[Any],
+) -> None:
     match = (
         f"Found {len(subclasses)} containers, "
         f"please specify the required container explicitly in the parameter 'target_container'"
@@ -42,7 +43,7 @@ async def _async_func(
     b: str = "asdsd",
     svc: Service,
     another_svc: SomeService,
-):
+) -> None:
     assert a == 234
     assert b == "rnd"
     assert isinstance(redis, Redis)
@@ -50,26 +51,28 @@ async def _async_func(
     assert isinstance(another_svc, SomeService)
 
 
-async def test_auto_inject_on_async_target():
-    await _async_func(a=234, b="rnd")
+async def test_auto_inject_on_async_target() -> None:
+    await _async_func(a=234, b="rnd")  # type: ignore[call-arg]
 
 
-async def test_auto_inject_expect_error_on_duplicated_provider_types(container):
+async def test_auto_inject_expect_error_on_duplicated_provider_types(
+    container: Type[Container],
+) -> None:
     _mock_providers = [container.__dict__["redis"]]
     _mock_providers.extend(
-        list(container._get_providers_generator()),
+        container.get_providers(),
     )
 
     with mock.patch.object(
         container,
-        "_get_providers_generator",
+        "get_providers",
         return_value=_mock_providers,
     ):
         with pytest.raises(DuplicatedFactoryTypeAutoInjectionError):
-            await _async_func(a=234, b="rnd")
+            await _async_func(a=234, b="rnd")  # type: ignore[call-arg]
 
 
-def test_auto_injection_with_args_overriding(container) -> None:
+def test_auto_injection_with_args_overriding(container: Type[Container]) -> None:
     @auto_inject
     def _inner(
         arg1: bool,  # noqa: FBT001
@@ -87,7 +90,9 @@ def test_auto_injection_with_args_overriding(container) -> None:
     _inner(True, arg2=container.service(b="afdsfsf", a=2242))  # noqa: FBT003
 
 
-async def test_auto_injection_with_args_overriding_async(container) -> None:
+async def test_auto_injection_with_args_overriding_async(
+    container: Type[Container],
+) -> None:
     @auto_inject
     async def _inner(
         arg1: bool,  # noqa: FBT001
@@ -106,17 +111,17 @@ async def test_auto_injection_with_args_overriding_async(container) -> None:
     assert await _inner(True, arg2=container.service(b="url", a=2000)) == 100  # noqa: FBT003
 
 
-def test_auto_injection_expect_error_on_unknown_provider():
+def test_auto_injection_expect_error_on_unknown_provider() -> None:
     @auto_inject
-    def inner(_: object): ...
+    def inner(_: object) -> Any: ...
 
     with pytest.raises(UnknownProviderTypeAutoInjectionError):
-        inner()
+        inner()  # type:ignore[call-arg]
 
 
-async def test_auto_injection_expect_error_on_unknown_provider_async():
+async def test_auto_injection_expect_error_on_unknown_provider_async() -> None:
     @auto_inject
-    async def inner(_: object): ...
+    async def inner(_: object) -> Any: ...
 
     with pytest.raises(UnknownProviderTypeAutoInjectionError):
-        await inner()
+        await inner()  # type:ignore[call-arg]

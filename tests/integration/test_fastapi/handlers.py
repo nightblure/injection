@@ -1,4 +1,5 @@
 import sys
+from typing import Any, Dict
 
 if sys.version_info >= (3, 9):
     from typing import Annotated
@@ -18,14 +19,14 @@ RedisDependencyWithoutProvideMarker = Annotated[Redis, Depends(Container.redis)]
 
 @router.post("/values")
 @inject
-async def some_get_async_endpoint_handler(redis: RedisDependency):
+async def some_get_async_endpoint_handler(redis: RedisDependency) -> Dict[str, Any]:
     value = redis.get(399)
     return {"detail": value}
 
 
 @router.get("/values/{param}")
 @inject
-def some_get_endpoint_handler(redis: RedisDependency, param: int):
+def some_get_endpoint_handler(redis: RedisDependency, param: int) -> Dict[str, Any]:
     value = redis.get(param)
     return {"detail": value}
 
@@ -34,4 +35,4 @@ def some_get_endpoint_handler(redis: RedisDependency, param: int):
 @inject
 async def async_endpoint_handler_with_dep_without_provide(
     _: RedisDependencyWithoutProvideMarker,
-): ...
+) -> Any: ...

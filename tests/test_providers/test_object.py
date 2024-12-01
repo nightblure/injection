@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 
@@ -18,7 +19,7 @@ class SomeClass: ...
         (234525, int),
     ],
 )
-def test_object_provider_resolve_with_expected_type(obj, expected):
+def test_object_provider_resolve_with_expected_type(obj: Any, expected: Any) -> None:
     provider = providers.Object(obj)
 
     assert isinstance(provider(), expected)
@@ -33,7 +34,7 @@ def test_object_provider_resolve_with_expected_type(obj, expected):
         ("some_class", "some_class"),
     ],
 )
-def test_object_provider_resolve_with_expected_value(obj, expected):
+def test_object_provider_resolve_with_expected_value(obj: Any, expected: Any) -> None:
     provider = providers.Object(obj)
 
     assert provider() == expected

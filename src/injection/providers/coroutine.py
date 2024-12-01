@@ -1,6 +1,10 @@
-from typing import Any, Awaitable, Callable, TypeVar, cast
+import sys
+from typing import Any, Awaitable, Callable, NoReturn, TypeVar
 
-from typing_extensions import ParamSpec
+if sys.version_info < (3, 10):
+    from typing_extensions import ParamSpec
+else:
+    from typing import ParamSpec
 
 from injection.providers.base_factory import BaseFactoryProvider
 
@@ -11,11 +15,12 @@ T = TypeVar("T")
 class Coroutine(BaseFactoryProvider[T]):
     def __init__(
         self,
-        coroutine: Callable[P, Awaitable[T]],
+        factory: Callable[P, Awaitable[T]],
         *a: P.args,
         **kw: P.kwargs,
     ) -> None:
-        super().__init__(cast(Callable[P, T], coroutine), *a, **kw)
+        super().__init__(factory, *a, **kw)
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Awaitable[T]:
-        return cast(Awaitable[T], super().__call__(*args, **kwargs))
+    def __call__(self, *_: Any, **__: Any) -> NoReturn:
+        msg = "Coroutine provider cannot be resolved synchronously"
+        raise RuntimeError(msg)
