@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Type
 from unittest import mock
 from unittest.mock import Mock
 
@@ -7,10 +7,10 @@ import pytest
 from injection.inject.exceptions import DuplicatedFactoryTypeAutoInjectionError
 from injection.providers.base import BaseProvider
 from injection.providers.singleton import Singleton
-from tests.container_objects import Redis
+from tests.container_objects import Container, Redis
 
 
-def test_get_providers(container):
+def test_get_providers(container: Type[Container]) -> None:
     providers = container.get_providers()
 
     assert len(providers) > 0
@@ -19,7 +19,9 @@ def test_get_providers(container):
         assert isinstance(provider, BaseProvider)
 
 
-def test_override_providers_fail_with_unknown_provider(container):
+def test_override_providers_fail_with_unknown_provider(
+    container: Type[Container],
+) -> None:
     unknown_provider = "not_exists_provider"
     match = f"Provider with name {unknown_provider!r} not found"
     override_objects = {"not_exists_provider": None}
@@ -29,7 +31,7 @@ def test_override_providers_fail_with_unknown_provider(container):
             ...
 
 
-def test_override_providers_success(container):
+def test_override_providers_success(container: Type[Container]) -> None:
     mock_redis = Mock()
     mock_redis.get.return_value = 111
     override_objects = {"redis": mock_redis, "num": 999}
@@ -42,7 +44,7 @@ def test_override_providers_success(container):
 
         with container.override_providers(nested_override_objects):
             assert container.num() == 92934
-            assert container.redis().get() == -999
+            assert container.redis().get(None) == -999
 
         override_redis = container.redis()
         assert isinstance(override_redis, Mock)
@@ -53,22 +55,22 @@ def test_override_providers_success(container):
     assert container.num() == 1234
 
 
-def test_container_instance_is_singleton(container):
+def test_container_instance_is_singleton(container: Type[Container]) -> None:
     instances = [container.instance() for _ in range(10)]
     instance_ids = {id(instance) for instance in instances}
     assert len(instance_ids) == 1
 
 
-def test_container_providers_generator(container):
-    providers = container._get_providers_generator()
-    assert isinstance(providers, Generator)
+def test_container_providers(container: Type[Container]) -> None:
+    providers = container.get_providers()
+    assert isinstance(providers, list)
 
     for provider in providers:
         assert isinstance(provider, BaseProvider)
 
 
-def test_reset_singletons(container):
-    providers = container._get_providers_generator()
+def test_reset_singletons(container: Type[Container]) -> None:
+    providers = container.get_providers()
 
     for provider in providers:
         if isinstance(provider, Singleton):
@@ -77,14 +79,14 @@ def test_reset_singletons(container):
 
     container.reset_singletons()
 
-    providers = container._get_providers_generator()
+    providers = container.get_providers()
 
     for provider in providers:
         if isinstance(provider, Singleton):
             assert provider._instance is None
 
 
-def test_reset_override(container):
+def test_reset_override(container: Type[Container]) -> None:
     original_num_value = container.num()
     original_num2_value = container.num2()
 
@@ -104,17 +106,49 @@ def test_reset_override(container):
     assert container.num2() == original_num2_value
 
 
-def test_resolve_by_type_expect_error_on_duplicated_provider_types(container):
+def test_resolve_by_type_expect_error_on_duplicated_provider_types(
+    container: Type[Container],
+) -> None:
     # Simulate a duplicate 'redis' provider
     _mock_providers = [container.__dict__["redis"]]
     _mock_providers.extend(
-        list(container._get_providers_generator()),
+        container.get_providers(),
     )
 
     with mock.patch.object(
         container,
-        "_get_providers_generator",
+        "get_providers",
         return_value=_mock_providers,
     ):
         with pytest.raises(DuplicatedFactoryTypeAutoInjectionError):
             container.resolve_by_type(Redis)
+
+
+def test_sync_resources_lifecycle(container: Type[Container]) -> None:
+    container.init_resources()
+
+    for provider in container.get_resource_providers():
+        if not provider.async_mode:
+            assert provider.initialized
+            _ = provider()
+
+    container.close_resources()
+
+    for provider in container.get_resource_providers():
+        if not provider.async_mode:
+            assert not provider.initialized
+
+
+async def test_async_resources_lifecycle(container: Type[Container]) -> None:
+    await container.init_resources_async()
+
+    for provider in container.get_resource_providers():
+        if provider.async_mode:
+            assert provider.initialized
+            _ = await provider.async_resolve()
+
+    await container.close_resources_async()
+
+    for provider in container.get_resource_providers():
+        if provider.async_mode:
+            assert not provider.initialized

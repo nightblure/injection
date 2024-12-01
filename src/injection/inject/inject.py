@@ -2,8 +2,9 @@ import inspect
 import sys
 from functools import wraps
 from inspect import Signature
-from typing import Any, Callable, Coroutine, Dict, TypeVar, cast
+from typing import Any, Callable, Coroutine, List, Type, TypeVar, cast
 
+from injection import DeclarativeContainer
 from injection.provide import Provide
 
 if sys.version_info < (3, 10):
@@ -12,13 +13,12 @@ else:
     from typing import ParamSpec
 
 
-T = TypeVar("T")
 P = ParamSpec("P")
-Markers = Dict[str, Provide]
+T = TypeVar("T")
 
 
-def _resolve_markers(markers: Markers) -> Dict[str, Any]:
-    return {param: provide.provider() for param, provide in markers.items()}
+def _get_all_di_containers() -> List[Type[DeclarativeContainer]]:
+    return DeclarativeContainer.__subclasses__()
 
 
 def _get_async_injected(
@@ -27,24 +27,24 @@ def _get_async_injected(
 ) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(f)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        markers_to_resolve = {}
-
         for i, (param, value) in enumerate(signature.parameters.items()):
-            if i < len(args) or param in kwargs:
+            if i < len(args):
                 continue
 
-            if not isinstance(value.default, Provide):
+            provide = kwargs.get(param, value.default)
+
+            if not isinstance(provide, Provide):
                 continue
 
-            markers_to_resolve[param] = value.default
+            resolved_provide = await provide.provider.async_resolve()
+            kwargs[param] = resolved_provide
 
-        resolved_markers = _resolve_markers(markers_to_resolve)
+        result = await f(*args, **kwargs)
 
-        for field_name, field_value in kwargs.items():
-            if isinstance(field_value, Provide):
-                kwargs[field_name] = field_value.provider()
+        for container in _get_all_di_containers():
+            await container.close_function_scope_resources_async()
 
-        return await f(*args, **resolved_markers, **kwargs)
+        return result
 
     return wrapper
 
@@ -55,24 +55,21 @@ def _get_sync_injected(
 ) -> Callable[P, T]:
     @wraps(f)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        markers_to_resolve = {}
-
         for i, (param, value) in enumerate(signature.parameters.items()):
-            if i < len(args) or param in kwargs:
+            if i < len(args):
                 continue
 
-            if not isinstance(value.default, Provide):
-                continue
+            value_or_provide = kwargs.get(param, value.default)
 
-            markers_to_resolve[param] = value.default
+            if isinstance(value_or_provide, Provide):
+                kwargs[param] = value_or_provide.provider()
 
-        resolved_markers = _resolve_markers(markers_to_resolve)
+        result = f(*args, **kwargs)
 
-        for field_name, field_value in kwargs.items():
-            if isinstance(field_value, Provide):
-                kwargs[field_name] = field_value.provider()
+        for container in _get_all_di_containers():
+            container.close_function_scope_resources()
 
-        return f(*args, **resolved_markers, **kwargs)
+        return result
 
     return wrapper
 

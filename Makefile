@@ -1,8 +1,8 @@
 test:
 	hatch test --cover --all --randomize
 
-#test-ci:
-	#pdm run pytest -rA tests --cov=src --cov-report term-missing --cov-report=xml --asyncio-mode=auto
+test3.8:
+	hatch test -i python="3.8" --cover --randomize
 
 test-py:
 	hatch test -i python="$(v)" --cover --randomize
@@ -50,4 +50,4 @@ release-minor:
 	make release
 
 mypy:
-	pdm run mypy src
+	pdm run mypy src tests

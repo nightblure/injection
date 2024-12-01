@@ -1,4 +1,4 @@
-# Using with Litestar
+# Litestar
 
 In order to successfully inject dependencies into Litestar request handlers,
 make sure that the following points are completed:

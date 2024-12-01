@@ -1,8 +1,10 @@
+from typing import Type
+
 from injection import Provide, inject
-from tests.container_objects import Service
+from tests.container_objects import Container, Service
 
 
-def test_injection_with_args_overriding(container) -> None:
+def test_injection_with_args_overriding(container: Type[Container]) -> None:
     @inject
     def _inner(
         arg1: bool,  # noqa: FBT001
@@ -20,7 +22,7 @@ def test_injection_with_args_overriding(container) -> None:
     _inner(True, arg2=container.service(b="afdsfsf", a=2242))  # noqa: FBT003
 
 
-async def test_injection_with_args_overriding_async(container) -> None:
+async def test_injection_with_args_overriding_async(container: Type[Container]) -> None:
     @inject
     async def _inner(
         arg1: bool,  # noqa: FBT001
@@ -38,7 +40,7 @@ async def test_injection_with_args_overriding_async(container) -> None:
     await _inner(True, arg2=container.service(b="url", a=2000))  # noqa: FBT003
 
 
-async def test_injection_async(container) -> None:
+async def test_injection_async(container: Type[Container]) -> None:
     @inject
     async def _inner(
         arg1: bool,  # noqa: FBT001

@@ -12,7 +12,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-class Transient(BaseFactoryProvider[T]):
+class Factory(BaseFactoryProvider[T]):
     """Object that needs to be created every time"""
 
     def __init__(

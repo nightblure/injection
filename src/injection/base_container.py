@@ -7,7 +7,7 @@ from injection.inject.exceptions import (
     DuplicatedFactoryTypeAutoInjectionError,
     UnknownProviderTypeAutoInjectionError,
 )
-from injection.providers import Singleton
+from injection.providers import Resource, Singleton
 from injection.providers.base import BaseProvider
 from injection.providers.base_factory import BaseFactoryProvider
 
@@ -25,7 +25,7 @@ class DeclarativeContainer:
         return cls.__instance
 
     @classmethod
-    def __get_providers(cls) -> Dict[str, BaseProvider[Any]]:
+    def _get_providers(cls) -> Dict[str, BaseProvider[Any]]:
         if cls.__providers is None:
             cls.__providers = {
                 member_name: member
@@ -35,14 +35,16 @@ class DeclarativeContainer:
         return cls.__providers
 
     @classmethod
-    def _get_providers_generator(cls) -> Iterator[BaseProvider[Any]]:
-        for _, member in inspect.getmembers(cls):
-            if isinstance(member, BaseProvider):
-                yield member
+    def get_providers(cls) -> List[BaseProvider[Any]]:
+        return list(cls._get_providers().values())
 
     @classmethod
-    def get_providers(cls) -> List[BaseProvider[Any]]:
-        return list(cls.__get_providers().values())
+    def get_resource_providers(cls) -> List[Resource[Any]]:
+        return [
+            provider
+            for provider in cls.get_providers()
+            if isinstance(provider, Resource)
+        ]
 
     @classmethod
     @contextmanager
@@ -66,7 +68,7 @@ class DeclarativeContainer:
         *,
         reset_singletons: bool = False,
     ) -> Iterator[None]:
-        current_providers = cls.__get_providers()
+        current_providers = cls._get_providers()
         current_provider_names = set(current_providers.keys())
         given_provider_names = set(providers_for_overriding.keys())
 
@@ -95,7 +97,7 @@ class DeclarativeContainer:
 
     @classmethod
     def reset_singletons(cls) -> None:
-        providers_gen = cls._get_providers_generator()
+        providers_gen = cls.get_providers()
 
         for provider in providers_gen:
             if isinstance(provider, Singleton):
@@ -103,16 +105,14 @@ class DeclarativeContainer:
 
     @classmethod
     def reset_override(cls) -> None:
-        providers = cls.__get_providers()
-
-        for provider in providers.values():
+        for provider in cls.get_providers():
             provider.reset_override()
 
     @classmethod
     def resolve_by_type(cls, type_: Type[Any]) -> Any:
         provider_factory_to_providers = defaultdict(list)
 
-        for provider in cls._get_providers_generator():
+        for provider in cls.get_providers():
             if not issubclass(type(provider), BaseFactoryProvider):
                 continue
 
@@ -129,3 +129,39 @@ class DeclarativeContainer:
                 return provider()
 
         raise UnknownProviderTypeAutoInjectionError(str(type_))
+
+    @classmethod
+    def init_resources(cls) -> None:
+        for provider in cls.get_resource_providers():
+            if not provider.async_mode:
+                provider()
+
+    @classmethod
+    async def init_resources_async(cls) -> None:
+        for provider in cls.get_resource_providers():
+            if provider.async_mode:
+                await provider.async_resolve()
+
+    @classmethod
+    def close_resources(cls) -> None:
+        for provider in cls.get_resource_providers():
+            if not provider.async_mode:
+                provider.close()
+
+    @classmethod
+    async def close_resources_async(cls) -> None:
+        for provider in cls.get_resource_providers():
+            if provider.async_mode:
+                await provider.async_close()
+
+    @classmethod
+    def close_function_scope_resources(cls) -> None:
+        for provider in cls.get_resource_providers():
+            if not provider.async_mode and provider.function_scope:
+                provider.close()
+
+    @classmethod
+    async def close_function_scope_resources_async(cls) -> None:
+        for provider in cls.get_resource_providers():
+            if provider.async_mode and provider.function_scope:
+                await provider.async_close()
