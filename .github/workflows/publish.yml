@@ -1,22 +1,11 @@
 name: Latest Release
 
-# https://github.com/litestar-org/polyfactory/blob/main/.github/workflows/ci.yml
-# https://github.com/litestar-org/advanced-alchemy/blob/main/.github/workflows/publish.yml
-# https://github.com/litestar-org/litestar/blob/main/.github/workflows/publish.yml
-# https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-# https://github.com/litestar-org/litestar/blob/main/.github/workflows/codeql.yml
-
 on:
   push:
     branches:
       - 'main'
     tags:
       - 'v*'
-
-#on:
-#  release:
-#    types: [published]
-#  workflow_dispatch:
 
 jobs:
   build:
@@ -43,7 +32,6 @@ jobs:
             ./pdm.lock
 
       - name: Build package
-#        run: pdm run hatch version "${{ github.ref_name }}" && make build
         run: make build
 
       - name: Store the distribution packages
@@ -152,14 +140,12 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-
     - name: Sign the dists with Sigstore
-      uses: sigstore/gh-action-sigstore-python@v2.1.1
+      uses: sigstore/gh-action-sigstore-python@v3.0.0
       with:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
-
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -167,8 +153,7 @@ jobs:
         gh release create
         '${{ github.ref_name }}'
         --repo '${{ github.repository }}'
-        --generate-notes""
-
+        --notes ""
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
