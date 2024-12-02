@@ -31,6 +31,12 @@
 
 .. toctree::
     :maxdepth: 1
+    :caption: Dependency injection
+    
+    injection/injection.md
+
+.. toctree::
+    :maxdepth: 1
     :caption: Integration with web frameworks
 
     integration-with-web-frameworks/fastapi

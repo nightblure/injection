@@ -7,6 +7,7 @@ from typing import (
     AsyncIterator,
     Callable,
     ContextManager,
+    Final,
     Iterator,
     Optional,
     Tuple,
@@ -69,6 +70,9 @@ def _create_context_factory(
     return context, async_mode
 
 
+_resource_not_initialized_error_msg: Final[str] = "Resource is not initialized"
+
+
 class Resource(BaseProvider[T]):
     def __init__(  # type: ignore[valid-type]
         self,
@@ -98,11 +102,10 @@ class Resource(BaseProvider[T]):
         self._instance: Optional[T] = None
         self._function_scope = function_scope
 
-    def _create_context(self) -> None:
+    def __create_context(self) -> None:
         self._context = self._context_factory(*self._args, **self._kwargs)
-        self._initialized = True
 
-    def _reset_context(self) -> None:
+    def reset(self) -> None:
         self._context = None
         self._initialized = False
 
@@ -123,28 +126,38 @@ class Resource(BaseProvider[T]):
         return cast(T, self._instance)
 
     def _resolve(self) -> T:
-        if self.initialized and not self.function_scope:
+        if self.initialized:
             return self.instance
 
-        self._create_context()
+        self.__create_context()
         self._instance = self._context.__enter__()
-        return self.instance
-
-    async def async_resolve(self) -> T:
-        self._create_context()
-        self._instance = await self._context.__aenter__()
+        self._initialized = True
         return self.instance
 
     def close(self) -> None:
         if not self._initialized:
-            return None
+            raise RuntimeError(_resource_not_initialized_error_msg)
 
         self._context.__exit__(None, None, None)
-        self._reset_context()
+        self.reset()
+
+    async def _async_resolve(self) -> T:
+        if self.initialized:
+            return self.instance
+
+        self.__create_context()
+
+        if self.async_mode:
+            self._instance = await self._context.__aenter__()
+        else:
+            self._instance = self._context.__enter__()
+
+        self._initialized = True
+        return self.instance
 
     async def async_close(self) -> None:
         if not self._initialized:
-            return None
+            raise RuntimeError(_resource_not_initialized_error_msg)
 
         await self._context.__aexit__(None, None, None)
-        self._reset_context()
+        self.reset()

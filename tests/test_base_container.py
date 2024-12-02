@@ -130,7 +130,6 @@ def test_sync_resources_lifecycle(container: Type[Container]) -> None:
     for provider in container.get_resource_providers():
         if not provider.async_mode:
             assert provider.initialized
-            _ = provider()
 
     container.close_resources()
 
@@ -145,10 +144,16 @@ async def test_async_resources_lifecycle(container: Type[Container]) -> None:
     for provider in container.get_resource_providers():
         if provider.async_mode:
             assert provider.initialized
-            _ = await provider.async_resolve()
 
-    await container.close_resources_async()
+    await container.close_async_resources()
 
     for provider in container.get_resource_providers():
         if provider.async_mode:
             assert not provider.initialized
+
+
+async def test_init_all_resources(container: Type[Container]) -> None:
+    await container.init_all_resources()
+
+    for provider in container.get_resource_providers():
+        assert provider.initialized

@@ -213,7 +213,7 @@ def func_with_injections(
     return redis.url
 
 
-@auto_inject
+@auto_inject(target_container=Container)
 def func_with_auto_injections(
     sfs: Any,
     redis: Redis,
@@ -232,7 +232,7 @@ def func_with_auto_injections(
     return redis.url
 
 
-@auto_inject
+@auto_inject(target_container=Container)
 def func_with_auto_injections_mixed(
     sfs: Any,
     *,

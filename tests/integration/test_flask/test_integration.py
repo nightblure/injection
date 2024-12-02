@@ -20,7 +20,7 @@ def flask_endpoint(redis: Redis = Provide[Container.redis]) -> Dict[str, Any]:
 
 
 @app.route("/auto-inject-endpoint", methods=["POST"])
-@auto_inject
+@auto_inject(target_container=Container)
 def flask_endpoint_auto_inject(redis: Redis) -> Dict[str, Any]:
     value = redis.get(-900)
     return {"detail": value}

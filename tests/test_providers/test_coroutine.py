@@ -1,5 +1,6 @@
 import asyncio
-from typing import Tuple, Type
+from typing import Any, Tuple, Type
+from unittest.mock import Mock
 
 import pytest
 
@@ -86,3 +87,16 @@ async def test_coroutine_provider_injecting_to_sync_function(
     value = await container.sync_func_with_coro_dependency.async_resolve()
 
     assert value == (1, 2)  # type: ignore[comparison-overlap]
+
+
+async def test_coroutine_provider_overriding(container: Type[Container]) -> None:
+    @inject
+    async def _inner(
+        v: Any = Provide[container.coroutine_provider],
+    ) -> str:
+        return v()  # type: ignore[no-any-return]
+
+    with container.coroutine_provider.override_context(Mock(return_value="mock")):
+        value = await _inner()
+
+    assert value == "mock"

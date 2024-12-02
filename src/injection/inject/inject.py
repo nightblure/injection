@@ -42,7 +42,8 @@ def _get_async_injected(
         result = await f(*args, **kwargs)
 
         for container in _get_all_di_containers():
-            await container.close_function_scope_resources_async()
+            await container.close_function_scope_async_resources()
+            container.close_function_scope_resources()
 
         return result
 

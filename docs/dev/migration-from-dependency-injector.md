@@ -13,7 +13,7 @@ and eliminates its shortcomings, which will make migrating very easy.
 ⚠️ **IMPORTANT** ❗
 
 [Injection](https://github.com/nightblure/injection) **does not implement** **some** [providers](https://python-dependency-injector.ets-labs.org/providers/index.html)
-(Resource, List, Dict, Aggregate and etc.) because the developer considered them to be **rarely used** in practice.
+(List, Dict and etc.) because the developer considered them to be **rarely used** in practice.
 In this case, you don't need to do the migration, but if you really want to use my package,
 I'd love to see your [issues](https://github.com/nightblure/injection/issues) and/or [merge requests](https://github.com/nightblure/injection/pulls)!
 

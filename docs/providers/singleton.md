@@ -26,7 +26,6 @@ if __name__ == "__main__":
 
     assert instance1 is instance2
     assert instance1.field == 15
-
 ```
 
 ## Resetting memoized object

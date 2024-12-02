@@ -87,6 +87,7 @@ ignore = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore::DeprecationWarning:pkg_resources.*",
 ]
@@ -166,7 +167,7 @@ build-backend = "hatchling.build"
 [tool.coverage.run]
 omit = [
     "src/injection/__version__.py",
-    "*/tests/*"
+    "*/tests/*",
 ]
 
 [tool.coverage.report]
@@ -175,7 +176,8 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "sys.version_info",
     "raise NotImplementedError",
-    "ImportError"
+    "ImportError",
+    "# pragma: no cover"
 ]
 
 [tool.mypy]
