@@ -17,7 +17,7 @@ class View(APIView):  # type:ignore[misc]
         response_body = {"redis_url": redis.url}
         return Response(response_body, status=status.HTTP_200_OK)
 
-    @auto_inject
+    @auto_inject(target_container=Container)
     def post(self, request: Request, redis: Redis) -> Response:
         body_serializer = PostEndpointBodySerializer(data=request.data)
         body_serializer.is_valid()

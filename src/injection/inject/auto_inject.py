@@ -72,35 +72,39 @@ def _get_async_injected(
 
 
 def auto_inject(
-    f: Callable[P, T],
     target_container: Optional[_ContainerType] = None,
-) -> Callable[P, T]:
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorate callable with injecting decorator. Inject objects by types"""
 
-    if target_container is None:
-        container_subclasses = DeclarativeContainer.__subclasses__()
+    def wrapper(f: Callable[P, T]) -> Callable[P, T]:
+        nonlocal target_container
 
-        if len(container_subclasses) > 1:
-            msg = (
-                f"Found {len(container_subclasses)} containers, please specify "
-                f"the required container explicitly in the parameter 'target_container'"
+        if target_container is None:
+            container_subclasses = DeclarativeContainer.__subclasses__()
+
+            if len(container_subclasses) > 1:
+                msg = (
+                    f"Found {len(container_subclasses)} containers, please specify "
+                    f"the required container explicitly in the parameter 'target_container'"
+                )
+                raise Exception(msg)
+
+            target_container = container_subclasses[0]  # pragma: no cover
+
+        signature = inspect.signature(f)
+
+        if inspect.iscoroutinefunction(f):
+            func_with_injected_params = _get_async_injected(
+                f=f,
+                signature=signature,
+                target_container=target_container,
             )
-            raise Exception(msg)
+            return cast(Callable[P, T], func_with_injected_params)
+        else:
+            return _get_sync_injected(
+                f=f,
+                signature=signature,
+                target_container=target_container,
+            )
 
-        target_container = container_subclasses[0]
-
-    signature = inspect.signature(f)
-
-    if inspect.iscoroutinefunction(f):
-        func_with_injected_params = _get_async_injected(
-            f=f,
-            signature=signature,
-            target_container=target_container,
-        )
-        return cast(Callable[P, T], func_with_injected_params)
-
-    return _get_sync_injected(
-        f=f,
-        signature=signature,
-        target_container=target_container,
-    )
+    return wrapper
