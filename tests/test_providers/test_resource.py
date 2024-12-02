@@ -1,5 +1,6 @@
 from types import TracebackType
-from typing import AsyncContextManager, ContextManager, Optional, Type
+from typing import Any, AsyncContextManager, ContextManager, Optional, Type
+from unittest.mock import Mock
 
 import pytest
 
@@ -240,3 +241,120 @@ async def test_resource_provider_based_on_async_ctx_manager_class() -> None:
     provider = Resource(_AsyncCtxManager)
 
     assert await provider.async_resolve() == 2
+
+
+def test_resource_provider_overriding(container: Type[Container]) -> None:
+    @inject
+    def _inner(
+        v: Any = Provide[container.sync_resource],
+    ) -> str:
+        return v()  # type: ignore[no-any-return]
+
+    with container.sync_resource.override_context(Mock(return_value="mock")):
+        value = _inner()
+
+    assert value == "mock"
+
+
+async def test_resource_provider_overriding_with_async_func_and_sync_resource(
+    container: Type[Container],
+) -> None:
+    @inject
+    async def _inner(
+        v: Any = Provide[container.sync_resource],
+    ) -> str:
+        return v()  # type: ignore[no-any-return]
+
+    with container.sync_resource.override_context(Mock(return_value="mock")):
+        value = await _inner()
+
+    assert value == "mock"
+
+
+async def test_resource_provider_overriding_with_async_func_and_async_resource(
+    container: Type[Container],
+) -> None:
+    @inject
+    async def _inner(
+        v: Any = Provide[container.async_resource],
+    ) -> str:
+        return v()  # type: ignore[no-any-return]
+
+    with container.async_resource.override_context(Mock(return_value="mock")):
+        value = await _inner()
+
+    assert value == "mock"
+
+
+def test_resource_provider_closing_expect_error_when_not_initialized(
+    container: Type[Container],
+) -> None:
+    with pytest.raises(RuntimeError, match="Resource is not initialized"):
+        container.sync_resource.close()
+
+
+async def test_resource_provider_async_closing_expect_error_when_not_initialized(
+    container: Type[Container],
+) -> None:
+    with pytest.raises(RuntimeError, match="Resource is not initialized"):
+        await container.async_resource.async_close()
+
+
+def test_resource_provider_successful_repeat_resolving(
+    container: Type[Container],
+) -> None:
+    container.init_resources()
+
+    assert isinstance(container.sync_resource(), Resources)
+
+
+async def test_resource_provider_successful_repeat_async_resolving(
+    container: Type[Container],
+) -> None:
+    await container.init_resources_async()
+
+    value = await container.async_resource.async_resolve()
+
+    assert isinstance(value, Resources)
+
+
+async def test_resource_provider_docs_code() -> None:
+    from typing import AsyncIterator, Iterator, Tuple
+
+    from injection import DeclarativeContainer, Provide, inject, providers
+
+    def sync_func() -> Iterator[str]:
+        yield "sync_func"
+
+    async def async_func() -> AsyncIterator[str]:
+        yield "async_func"
+
+    class DIContainer(DeclarativeContainer):
+        sync_resource = providers.Resource(sync_func)
+        async_resource = providers.Resource(async_func)
+
+        sync_resource_func_scope = providers.Resource(sync_func, function_scope=True)
+        async_resource_func_scope = providers.Resource(async_func, function_scope=True)
+
+    @inject
+    async def func_with_injections(
+        sync_value: str = Provide[DIContainer.sync_resource],
+        async_value: str = Provide[DIContainer.async_resource],
+        sync_func_scope_value: str = Provide[DIContainer.sync_resource_func_scope],
+        async_func_scope_value: str = Provide[DIContainer.async_resource_func_scope],
+    ) -> Tuple[str, str, str, str]:
+        return sync_value, async_value, sync_func_scope_value, async_func_scope_value
+
+    async def main() -> None:
+        values = await func_with_injections()
+
+        assert values == ("sync_func", "async_func", "sync_func", "async_func")
+
+        assert DIContainer.sync_resource.initialized
+        assert DIContainer.async_resource.initialized
+
+        # Resources with function scope were closed after dependency injection
+        assert not DIContainer.sync_resource_func_scope.initialized
+        assert not DIContainer.async_resource_func_scope.initialized
+
+    await main()

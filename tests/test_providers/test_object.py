@@ -1,9 +1,11 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Type
+from unittest.mock import Mock
 
 import pytest
 
-from injection import providers
+from injection import Provide, inject, providers
+from tests.container_objects import Container
 
 
 @dataclass
@@ -38,3 +40,33 @@ def test_object_provider_resolve_with_expected_value(obj: Any, expected: Any) ->
     provider = providers.Object(obj)
 
     assert provider() == expected
+
+
+def test_object_provider_overriding_with_sync_injection(
+    container: Type[Container],
+) -> None:
+    @inject
+    def _inner(
+        v: Any = Provide[container.num],
+    ) -> str:
+        return v()  # type: ignore[no-any-return]
+
+    with container.num.override_context(Mock(return_value="mock")):
+        value = _inner()
+
+    assert value == "mock"
+
+
+async def test_object_provider_overriding_with_async_injection(
+    container: Type[Container],
+) -> None:
+    @inject
+    async def _inner(
+        v: Any = Provide[container.num],
+    ) -> str:
+        return v()  # type: ignore[no-any-return]
+
+    with container.num.override_context(Mock(return_value="mock")):
+        value = await _inner()
+
+    assert value == "mock"

@@ -22,8 +22,9 @@ class BaseProvider(Generic[T], ABC):
     def _resolve(self, *args: Any, **kwargs: Any) -> T:
         raise NotImplementedError
 
+    @abstractmethod
     async def _async_resolve(self, *args: Any, **kwargs: Any) -> T:
-        return self._resolve(*args, **kwargs)
+        raise NotImplementedError
 
     async def async_resolve(self, *args: Any, **kwargs: Any) -> T:
         if self._mocks:

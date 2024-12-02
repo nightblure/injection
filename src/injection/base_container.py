@@ -143,25 +143,57 @@ class DeclarativeContainer:
                 await provider.async_resolve()
 
     @classmethod
+    async def init_all_resources(cls) -> None:
+        resource_providers = cls.get_resource_providers()
+
+        for provider in resource_providers:
+            if provider.async_mode:
+                await provider.async_resolve()
+
+        for provider in resource_providers:
+            if not provider.async_mode:
+                provider()
+
+    @classmethod
     def close_resources(cls) -> None:
         for provider in cls.get_resource_providers():
-            if not provider.async_mode:
+            if provider.initialized and not provider.async_mode:
                 provider.close()
 
     @classmethod
     async def close_resources_async(cls) -> None:
         for provider in cls.get_resource_providers():
-            if provider.async_mode:
+            if provider.initialized and provider.async_mode:
                 await provider.async_close()
 
     @classmethod
     def close_function_scope_resources(cls) -> None:
         for provider in cls.get_resource_providers():
-            if not provider.async_mode and provider.function_scope:
+            if (
+                provider.initialized
+                and not provider.async_mode
+                and provider.function_scope
+            ):
                 provider.close()
 
     @classmethod
-    async def close_function_scope_resources_async(cls) -> None:
-        for provider in cls.get_resource_providers():
-            if provider.async_mode and provider.function_scope:
-                await provider.async_close()
+    async def close_all_resources(cls) -> None:
+        resource_providers = cls.get_resource_providers()
+
+        for provider in resource_providers:
+            if not (
+                provider.initialized and provider.function_scope and provider.async_mode
+            ):
+                continue
+
+            await provider.async_close()
+
+        for provider in resource_providers:
+            if not (
+                provider.initialized
+                and provider.function_scope
+                and not provider.async_mode
+            ):
+                continue
+
+            provider.close()

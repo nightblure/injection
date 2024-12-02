@@ -9,6 +9,7 @@ Also supports **asynchronous** dependencies.
 ```python3
 import asyncio
 from dataclasses import dataclass
+from typing import Tuple
 
 from injection import DeclarativeContainer, providers
 
@@ -35,7 +36,6 @@ async def main() -> None:
 
 instance1 = DIContainer.sync_factory()
 instance2 = DIContainer.sync_factory()
-
 assert instance1 is not instance2
 
 asyncio.run(main())

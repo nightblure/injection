@@ -1,4 +1,4 @@
-from typing import TypeVar, cast
+from typing import TypeVar
 
 from injection.providers.base import BaseProvider
 
@@ -6,14 +6,12 @@ T = TypeVar("T")
 
 
 class Object(BaseProvider[T]):
-    def __init__(self, obj: T) -> None:
+    def __init__(self, value: T) -> None:
         super().__init__()
-        self._obj = obj
+        self._value = value
 
     def _resolve(self) -> T:
-        return self._obj
+        return self._value
 
-    def __call__(self) -> T:
-        if self._mocks:
-            return cast(T, self._mocks[-1])
-        return self._resolve()
+    async def _async_resolve(self) -> T:
+        return self._value
