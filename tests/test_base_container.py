@@ -145,7 +145,7 @@ async def test_async_resources_lifecycle(container: Type[Container]) -> None:
         if provider.async_mode:
             assert provider.initialized
 
-    await container.close_resources_async()
+    await container.close_async_resources()
 
     for provider in container.get_resource_providers():
         if provider.async_mode:

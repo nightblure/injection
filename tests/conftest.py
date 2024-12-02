@@ -13,5 +13,4 @@ def container() -> Type[Container]:
 @pytest.fixture(autouse=True)
 async def _close_resources(container: Type[Container]) -> AsyncIterator[None]:
     yield
-    container.close_resources()
-    await container.close_resources_async()
+    await container.close_all_resources()

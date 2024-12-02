@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 from collections import defaultdict
 from contextlib import contextmanager
@@ -138,17 +139,25 @@ class DeclarativeContainer:
 
     @classmethod
     async def init_resources_async(cls) -> None:
-        for provider in cls.get_resource_providers():
-            if provider.async_mode:
-                await provider.async_resolve()
+        await asyncio.gather(
+            *[
+                provider.async_resolve()
+                for provider in cls.get_resource_providers()
+                if provider.async_mode
+            ],
+        )
 
     @classmethod
     async def init_all_resources(cls) -> None:
         resource_providers = cls.get_resource_providers()
 
-        for provider in resource_providers:
-            if provider.async_mode:
-                await provider.async_resolve()
+        await asyncio.gather(
+            *[
+                provider.async_resolve()
+                for provider in resource_providers
+                if provider.async_mode
+            ],
+        )
 
         for provider in resource_providers:
             if not provider.async_mode:
@@ -161,18 +170,34 @@ class DeclarativeContainer:
                 provider.close()
 
     @classmethod
-    async def close_resources_async(cls) -> None:
-        for provider in cls.get_resource_providers():
-            if provider.initialized and provider.async_mode:
-                await provider.async_close()
+    async def close_async_resources(cls) -> None:
+        await asyncio.gather(
+            *[
+                provider.async_close()
+                for provider in cls.get_resource_providers()
+                if provider.initialized and provider.async_mode
+            ],
+        )
+
+    @classmethod
+    async def close_function_scope_async_resources(cls) -> None:
+        await asyncio.gather(
+            *[
+                provider.async_close()
+                for provider in cls.get_resource_providers()
+                if provider.initialized
+                and provider.async_mode
+                and provider.function_scope
+            ],
+        )
 
     @classmethod
     def close_function_scope_resources(cls) -> None:
         for provider in cls.get_resource_providers():
             if (
                 provider.initialized
-                and not provider.async_mode
                 and provider.function_scope
+                and not provider.async_mode
             ):
                 provider.close()
 
@@ -180,20 +205,14 @@ class DeclarativeContainer:
     async def close_all_resources(cls) -> None:
         resource_providers = cls.get_resource_providers()
 
+        await asyncio.gather(
+            *[
+                provider.async_close()
+                for provider in resource_providers
+                if provider.initialized and provider.async_mode
+            ],
+        )
+
         for provider in resource_providers:
-            if not (
-                provider.initialized and provider.function_scope and provider.async_mode
-            ):
-                continue
-
-            await provider.async_close()
-
-        for provider in resource_providers:
-            if not (
-                provider.initialized
-                and provider.function_scope
-                and not provider.async_mode
-            ):
-                continue
-
-            provider.close()
+            if provider.initialized and not provider.async_mode:
+                provider.close()
