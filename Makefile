@@ -8,32 +8,25 @@ test-py:
 	hatch test -i python="$(v)" --cover --randomize
 
 lint:
-	pdm run pre-commit install
-	pdm run pre-commit run --all-files
-
-lint-ci:
-	pre-commit install && pre-commit run --color=always --all-files
+	pre-commit install
+	pre-commit run --all-files
 
 deps:
-	pdm install
+	uv sync
 
 build:
 	rm -r -f dist && pdm run hatch build
 
 hatch-env-prune:
-	pdm run hatch env prune
+	hatch env prune
 
 docs-server:
 	rm -rf docs/build
-	pdm run sphinx-autobuild docs docs/build
+	sphinx-autobuild docs docs/build
 
 build-docs:
 	rm -rf docs/build/* && rm -rf docs/build/{*,.*}
-	pdm run sphinx-build docs docs/build
-
-# https://pdm-project.org/latest/usage/dependency/#select-a-subset-of-dependency-groups-to-install
-docs-deps:
-	pdm install -G docs
+	sphinx-build docs docs/build
 
 # example: make tag v="v3.9.2", TAG MUST INCLUDE v
 release:
@@ -50,4 +43,4 @@ release-minor:
 	make release
 
 mypy:
-	pdm run mypy src tests
+	mypy src tests

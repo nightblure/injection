@@ -1,13 +1,17 @@
+from random import Random
 from typing import Any, AsyncIterator, Type
 from unittest.mock import Mock
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 from tests.container_objects import Container
 from tests.integration.test_fastapi.app import create_app
+from tests.integration.test_fastapi.sqlalchemy_resource_case import (
+    SqlaResourceContainer,
+)
 
 
 @pytest.fixture(scope="session")
@@ -23,7 +27,10 @@ def test_client(app: FastAPI) -> TestClient:
 
 @pytest.fixture(scope="session")
 async def async_client(app: FastAPI) -> AsyncIterator[AsyncClient]:
-    async with AsyncClient(app=app, base_url="http://testserver") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app),
+        base_url="http://testserver",
+    ) as client:
         yield client
 
 
@@ -86,3 +93,31 @@ def test_fastapi_override_provider(
     assert response.status_code == 200
     body = response.json()
     assert body["detail"] == override_value
+
+
+@pytest.fixture(scope="session")
+def rnd() -> Random:
+    return Random()  # noqa: S311
+
+
+@pytest.fixture
+def random_int(rnd: Random) -> int:
+    return rnd.randint(1, 10**6)
+
+
+def test_sqla_resource_sync_endpoint(test_client: TestClient, random_int: int) -> None:
+    response = test_client.get(f"/sqlalchemy-resources/sync/{random_int}")
+
+    assert response.status_code == 200
+    assert not SqlaResourceContainer.db_session.initialized
+    body = response.json()
+    assert isinstance(body["detail"], int)
+
+
+def test_sqla_resource_async_endpoint(test_client: TestClient, random_int: int) -> None:
+    response = test_client.get(f"/sqlalchemy-resources/async/{random_int}")
+
+    assert response.status_code == 200
+    assert not SqlaResourceContainer.db_session.initialized
+    body = response.json()
+    assert isinstance(body["detail"], int)

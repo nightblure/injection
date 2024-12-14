@@ -56,91 +56,96 @@ pip install deps-injection
 | [Litestar](https://github.com/litestar-org/litestar)                     |                 ✅                 |          ✅           |                      ➖                      |                           ➖                            |
 
 
-## Using example with FastAPI
+## Using example with FastAPI and SQLAlchemy
 ```python3
-from typing import Annotated
-from unittest.mock import Mock
+from contextlib import contextmanager
+from random import Random
+from typing import Annotated, Any, Callable, Dict, Iterator
 
 import pytest
-from fastapi import APIRouter, Depends, FastAPI
-from fastapi.testclient import TestClient
+from fastapi import Depends, FastAPI
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
+from starlette.testclient import TestClient
+
 from injection import DeclarativeContainer, Provide, inject, providers
 
 
-class Settings:
-    redis_url: str = "redis://localhost"
-    redis_port: int = 6379
+@contextmanager
+def db_session_resource(session_factory: Callable[..., Session]) -> Iterator[Session]:
+    session = session_factory()
+    try:
+        yield session
+    except Exception:
+        session.rollback()
+    finally:
+        session.close()
 
 
-class Redis:
-    def __init__(self, *, url: str, port: int):
-        self.uri = url + ":" + str(port)
-        self.url = url
-        self.port = port
+class SomeDAO:
+    def __init__(self, db_session: Session) -> None:
+        self.db_session = db_session
 
-    def get(self, key):
-        return key
+    def get_some_data(self, num: int) -> int:
+        stmt = text("SELECT :num").bindparams(num=num)
+        data: int = self.db_session.execute(stmt).scalar_one()
+        return data
 
 
-class Container(DeclarativeContainer):
-    settings = providers.Singleton(Settings)
-    redis = providers.Singleton(
-        Redis,
-        port=settings.provided.redis_port,
-        url=settings.provided.redis_url,
+class DIContainer(DeclarativeContainer):
+    db_engine = providers.Singleton(
+        create_engine,
+        url="sqlite:///db.db",
+        pool_size=20,
+        max_overflow=0,
+        pool_pre_ping=False,
     )
 
+    session_factory = providers.Singleton(
+        sessionmaker,
+        db_engine.cast,
+        autoflush=False,
+        autocommit=False,
+    )
 
-router = APIRouter(prefix="/api")
+    db_session = providers.Resource(
+        db_session_resource,
+        session_factory=session_factory.cast,
+        function_scope=True,
+    )
+
+    some_dao = providers.Factory(SomeDAO, db_session=db_session.cast)
 
 
-def create_app():
-    app = FastAPI()
-    app.include_router(router)
-    return app
+SomeDAODependency = Annotated[SomeDAO, Depends(Provide[DIContainer.some_dao])]
+
+app = FastAPI()
 
 
-RedisDependency = Annotated[Redis, Depends(Provide[Container.redis])]
-
-
-@router.get("/values")
+@app.get("/values/{value}")
 @inject
-def some_get_endpoint_handler(redis: RedisDependency):
-    value = redis.get(299)
+async def sqla_resource_handler_async(
+    value: int,
+    some_dao: SomeDAODependency,
+) -> Dict[str, Any]:
+    value = some_dao.get_some_data(num=value)
     return {"detail": value}
-```
-
-## Testing example with overriding providers for above FastAPI example
-```python3
-@pytest.fixture(scope="session")
-def app():
-    return create_app()
 
 
 @pytest.fixture(scope="session")
-def container():
-    return Container.instance()
-
-
-@pytest.fixture()
-def test_client(app):
+def test_client() -> TestClient:
     client = TestClient(app)
     return client
 
 
-def test_override_providers(test_client, container):
-    def mock_get_method(_):
-        return "mock_get_method"
+def test_sqla_resource(test_client: TestClient) -> None:
+    rnd = Random()
+    random_int = rnd.randint(-(10**6), 10**6)
 
-    mock_redis = Mock()
-    mock_redis.get = mock_get_method
-
-    providers_to_override = {"redis": mock_redis}
-
-    with container.override_providers(providers_to_override):
-        response = test_client.get("/api/values")
+    response = test_client.get(f"/values/{random_int}")
 
     assert response.status_code == 200
+    assert not DIContainer.db_session.initialized
     body = response.json()
-    assert body["detail"] == "mock_get_method"
+    assert body["detail"] == random_int
 ```

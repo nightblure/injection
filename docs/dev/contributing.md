@@ -7,7 +7,8 @@ with fixes and new features!
 
 Modern packages, dependencies and practices were used in the development of the Injection:
 * linter and formatter - [Ruff](https://docs.astral.sh/ruff/);
-* dependency manager - [PDM](https://pdm-project.org/en/latest/);
+* type checking - [mypy](https://github.com/python/mypy);
+* package manager - [uv](https://github.com/astral-sh/uv);
 * package builder - [Hatch](https://github.com/pypa/hatch);
 * testing - [pytest](https://github.com/pytest-dev/pytest);
 * assembly and documentation management - [Sphinx](https://www.sphinx-doc.org/en/master/).
