@@ -17,6 +17,7 @@ from typing import (
 )
 
 from injection.providers.base import BaseProvider
+from injection.resolving import resolve_provider_args, resolve_provider_args_async
 
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
@@ -103,7 +104,18 @@ class Resource(BaseProvider[T]):
         self._function_scope = function_scope
 
     def __create_context(self) -> None:
-        self._context = self._context_factory(*self._args, **self._kwargs)
+        resolved_args, resolved_kwargs = resolve_provider_args(
+            *self._args,
+            **self._kwargs,
+        )
+        self._context = self._context_factory(*resolved_args, **resolved_kwargs)
+
+    async def __create_async_context(self) -> None:
+        resolved_args, resolved_kwargs = await resolve_provider_args_async(
+            *self._args,
+            **self._kwargs,
+        )
+        self._context = self._context_factory(*resolved_args, **resolved_kwargs)
 
     def reset(self) -> None:
         self._context = None
@@ -145,7 +157,7 @@ class Resource(BaseProvider[T]):
         if self.initialized:
             return self.instance
 
-        self.__create_context()
+        await self.__create_async_context()
 
         if self.async_mode:
             self._instance = await self._context.__aenter__()

@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config.update({"TESTING": True})
 
 
-@app.route("/some_resource")
+@app.route("/some_resource", methods=["GET"])
 @inject
 def flask_endpoint(redis: Redis = Provide[Container.redis]) -> Dict[str, Any]:
     value = redis.get(-900)

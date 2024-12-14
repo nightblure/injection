@@ -104,21 +104,18 @@ packages = ["src/injection"]
 [tool.pdm]
 distribution = false
 
-[tool.pdm.dev-dependencies]
-dev = [
+[tool.uv]
+package = false
+dev-dependencies = [
     "hatch==1.13.0",
     "pre-commit",
     "mypy>=1.13.0",
     "setuptools>=75.2.0",
-]
-docs = [
     "sphinx==7.*",
     "sphinx-rtd-theme==2.*",
     "sphinx-autobuild",
     "sphinx-copybutton==0.*",
     "myst-parser==3.*",
-]
-test = [
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
@@ -126,6 +123,7 @@ test = [
     "fastapi",
     "litestar",
     "flask",
+    "sqlalchemy==2.0.36"
 ]
 
 [tool.hatch.envs.hatch-test]
@@ -137,6 +135,7 @@ extra-dependencies = [
     "fastapi",
     "litestar",
     "flask",
+    "sqlalchemy==2.0.36"
 ]
 
 # https://hatch.pypa.io/1.13/config/internal/testing/#scripts
