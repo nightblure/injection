@@ -41,7 +41,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras --no-install-project
+        run: uv sync --frozen --all-extras --no-install-project
 
       - name: Execute mypy
         run: uv run mypy src tests
