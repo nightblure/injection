@@ -15,7 +15,7 @@ deps:
 	uv sync
 
 build:
-	rm -r -f dist && pdm run hatch build
+	rm -rf dist && pdm run hatch build
 
 hatch-env-prune:
 	hatch env prune

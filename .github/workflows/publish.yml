@@ -22,17 +22,17 @@ jobs:
           python-version: "3.12"
           allow-prereleases: false
 
-      - uses: pdm-project/setup-pdm@v4
-        name: Set up PDM
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.12"
-          prerelease: false
-          cache: true
-          cache-dependency-path: |
-            ./pdm.lock
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras --no-install-project
 
       - name: Build package
-        run: make build
+        run: rm -rf dist && uv run hatch build
 
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
@@ -140,12 +140,14 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
+
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v3.0.0
       with:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
+
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -154,6 +156,7 @@ jobs:
         '${{ github.ref_name }}'
         --repo '${{ github.repository }}'
         --generate-notes""
+
     - name: Upload artifact signatures to GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
