@@ -8,6 +8,12 @@ have already been created in the container.
 `@autoinject` decorator will try to find providers according to the types 
 of the function parameters and inject the dependencies.
 
+### Usage with multiple containers
+
+The `@autoinject` decorator can take a `target_container` **parameter**. 
+You can omit the container if you have only one in your code, 
+but you must if you have several in your code.
+
 ### Example
 
 ```python
@@ -41,7 +47,8 @@ def test_auto_inject_to_sync_function() -> None:
 
 
 async def test_auto_inject_to_async_function() -> None:
-    @auto_inject(target_container=DIContainer)
+    # It is not necessary to pass target_container if there is only one
+    @auto_inject()
     async def _async_func(obj: SomeClass) -> None:
         assert await obj.async_func() == "async func"
         assert obj.a == 1
