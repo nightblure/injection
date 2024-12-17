@@ -33,7 +33,7 @@
     :maxdepth: 1
     :caption: Dependency injection
     
-    injection/injection.md
+    injection/auto_injection.md
 
 .. toctree::
     :maxdepth: 1

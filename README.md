@@ -28,12 +28,13 @@ Easy dependency injection for all, works with Python 3.8-3.12. Main features and
 * support **Python 3.8-3.12**;
 * works with **FastAPI, **Litestar**, Flask** and **Django REST Framework**;
 * support **dependency** **injection** via `Annotated` in `FastAPI`;
-* the code is fully **typed** and checked with [mypy](https://github.com/python/mypy);
 * support **async injections**;
+* [**autoinject**]() **feature**; 
 * **resources** with **function scope**;
 * no **wiring**;
 * **overriding** dependencies for testing;
 * **100%** code coverage;
+* the code is fully **typed** and checked with [mypy](https://github.com/python/mypy);
 * good [documentation](https://injection.readthedocs.io/latest/);
 * intuitive and almost identical api with [dependency-injector](https://github.com/ets-labs/python-dependency-injector),
 which will allow you to easily migrate to injection
