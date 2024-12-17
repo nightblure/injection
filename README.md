@@ -27,12 +27,11 @@
 Easy dependency injection for all, works with Python 3.8-3.12. Main features and advantages:
 * support **Python 3.8-3.12**;
 * works with **FastAPI, **Litestar**, Flask** and **Django REST Framework**;
-* support dependency injection via `Annotated` in `FastAPI`;
-* the code is fully typed and checked with [mypy](https://github.com/python/mypy);
-* **no third-party dependencies**;
+* support **dependency** **injection** via `Annotated` in `FastAPI`;
+* the code is fully **typed** and checked with [mypy](https://github.com/python/mypy);
 * support **async injections**;
+* **resources** with **function scope**;
 * no **wiring**;
-* the life cycle of objects (**scope**) is implemented by **providers**;
 * **overriding** dependencies for testing;
 * **100%** code coverage;
 * good [documentation](https://injection.readthedocs.io/latest/);
