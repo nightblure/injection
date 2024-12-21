@@ -56,7 +56,7 @@ pip install deps-injection
 | [Litestar](https://github.com/litestar-org/litestar)                     |                 ✅                 |          ✅           |                      ➖                      |                           ➖                            |
 
 
-## Using example with FastAPI and SQLAlchemy
+## Quickstart with FastAPI, SQLAlchemy and pytest
 ```python3
 from contextlib import contextmanager
 from random import Random
