@@ -1,10 +1,18 @@
 from types import TracebackType
-from typing import Any, AsyncContextManager, ContextManager, Optional, Type
+from typing import (
+    Any,
+    AsyncContextManager,
+    AsyncIterator,
+    ContextManager,
+    Iterator,
+    Optional,
+    Type,
+)
 from unittest.mock import Mock
 
 import pytest
 
-from injection import Provide, inject
+from injection import DeclarativeContainer, Provide, inject, providers
 from injection.providers import Resource
 from tests.container_objects import Container, Resources
 
@@ -364,3 +372,95 @@ async def test_resource_provider_docs_code() -> None:
         assert not DIContainer.async_resource_func_scope.initialized
 
     await main()
+
+
+def test_related_resource_providers_closing_sync() -> None:
+    def sync_func(val: str) -> Iterator[str]:
+        yield val
+
+    class _Container(DeclarativeContainer):
+        resource = providers.Resource(sync_func, "resource lvl 1")
+        resource_func_scope = providers.Resource(
+            sync_func,
+            resource,
+            function_scope=True,
+        )
+        resource_func_scope_2 = providers.Resource(
+            sync_func,
+            resource_func_scope,
+            function_scope=True,
+        )
+
+        unrelated_resource = providers.Resource(
+            sync_func,
+            "no matter",
+            function_scope=True,
+        )
+
+    @inject
+    def func(v: str = Provide[_Container.resource_func_scope_2]) -> None:
+        assert _Container.resource.initialized
+        assert _Container.resource.instance is not None
+
+        assert v == "resource lvl 1"
+        for p in [_Container.resource_func_scope, _Container.resource_func_scope_2]:
+            assert p.initialized
+            assert p.instance == "resource lvl 1"
+
+        assert not _Container.unrelated_resource.initialized
+        assert _Container.unrelated_resource.instance is None
+
+    func()
+
+    assert _Container.resource.initialized
+    assert _Container.resource.instance is not None
+
+    for provider in [_Container.resource_func_scope, _Container.resource_func_scope_2]:
+        assert not provider.initialized
+        assert provider.instance is None
+
+    assert not _Container.unrelated_resource.initialized
+    assert _Container.unrelated_resource.instance is None
+
+
+async def test_related_resource_providers_closing_async() -> None:
+    async def func(val: str) -> AsyncIterator[str]:
+        yield val
+
+    class _Container(DeclarativeContainer):
+        resource = providers.Resource(func, "resource lvl 1")
+        resource_func_scope = providers.Resource(func, resource, function_scope=True)
+        resource_func_scope_2 = providers.Resource(
+            func,
+            resource_func_scope,
+            function_scope=True,
+        )
+
+        unrelated_resource = providers.Resource(func, "no matter", function_scope=True)
+
+    @inject
+    async def func_with_injections(
+        v: str = Provide[_Container.resource_func_scope_2],
+    ) -> None:
+        assert _Container.resource.initialized
+        assert _Container.resource.instance is not None
+
+        assert v == "resource lvl 1"
+        for p in [_Container.resource_func_scope, _Container.resource_func_scope_2]:
+            assert p.initialized
+            assert p.instance == "resource lvl 1"
+
+        assert not _Container.unrelated_resource.initialized
+        assert _Container.unrelated_resource.instance is None
+
+    await func_with_injections()
+
+    assert _Container.resource.initialized
+    assert _Container.resource.instance is not None
+
+    for provider in [_Container.resource_func_scope, _Container.resource_func_scope_2]:
+        assert not provider.initialized
+        assert provider.instance is None
+
+    assert not _Container.unrelated_resource.initialized
+    assert _Container.unrelated_resource.instance is None
