@@ -30,7 +30,7 @@ Easy dependency injection for all, works with Python 3.8-3.12. Main features and
 * support **dependency** **injection** via `Annotated` in `FastAPI`;
 * support **async injections**;
 * support [**auto injection by types**](https://injection.readthedocs.io/latest/injection/auto_injection.html); 
-* **resources** with **function scope**;
+* [**resources**](https://injection.readthedocs.io/latest/providers/resource.html) with **function scope**;
 * no **wiring**;
 * **overriding** dependencies for testing;
 * **100%** code coverage;

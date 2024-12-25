@@ -12,6 +12,11 @@ Resource provider can works with two scopes: **singleton** and **function-scope*
 **Function-scope** requires to set parameter of `Resource` provider `function_scope=True`.
 **Function-scope** resources can works only with `@inject` decorator!
 
+**NOTE**: if you inject providers that **depend** **on other resource providers** **with a** **function scope**, 
+after the function with dependencies has completed, 
+all **resources** **with function scope** **will be found and closed** 
+(_see **Example with SQLAlchemy and FastAPI** below_).
+
 ## Example
 ```python
 from typing import Tuple, Iterator, AsyncIterator
