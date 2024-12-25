@@ -49,16 +49,12 @@ def _get_sync_injected(
 
             if is_parameter_for_autoinject:
                 provider = target_container.get_provider_by_type(param.annotation)
-                kwargs[param_name] = provider()
-            else:
-                if provider is None:
-                    continue
 
-                provider = value_or_provide.provider
-                kwargs[param_name] = provider()
+            if provider is None:
+                continue
 
-            if provider is not None:
-                providers.append(provider)
+            providers.append(provider)
+            kwargs[param_name] = provider()
 
         result = f(*args, **kwargs)
 
@@ -86,7 +82,7 @@ def _get_async_injected(  # noqa: C901
     target_container: _ContainerType,
 ) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(f)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:  # noqa: PLR0912, C901
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:  # noqa: C901
         providers = []
 
         for i, (param_name, param) in enumerate(signature.parameters.items()):
@@ -105,23 +101,26 @@ def _get_async_injected(  # noqa: C901
 
             if is_parameter_for_autoinject:
                 provider = target_container.get_provider_by_type(param.annotation)
-                kwargs[param_name] = provider()
-            else:
-                if provider is None:
-                    continue
 
-                if isinstance(provider, BaseFactoryProvider):
-                    if provider.async_mode:
-                        resolved_provide = await provider.async_resolve()
-                    else:
-                        resolved_provide = provider()
+            if provider is None:
+                continue
+
+            providers.append(provider)
+
+            if is_parameter_for_autoinject or not isinstance(
+                provider,
+                BaseFactoryProvider,
+            ):
+                kwargs[param_name] = provider()
+                continue
+
+            if isinstance(provider, BaseFactoryProvider):
+                if provider.async_mode:
+                    resolved_provide = await provider.async_resolve()
                 else:
                     resolved_provide = provider()
 
                 kwargs[param_name] = resolved_provide
-
-            if provider is not None:
-                providers.append(provider)
 
         result = await f(*args, **kwargs)
 
