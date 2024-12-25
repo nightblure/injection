@@ -70,3 +70,13 @@ async def test_object_provider_overriding_with_async_injection(
         value = await _inner()
 
     assert value == "mock"
+
+
+async def test_object_provider_expect_error_on_async_resolving(
+    container: Type[Container],
+) -> None:
+    with pytest.raises(
+        RuntimeError,
+        match="Object provider should not be resolved with await",
+    ):
+        await container.num.async_resolve()

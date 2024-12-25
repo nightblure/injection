@@ -17,5 +17,5 @@ def test_provider_resolving_fail_on_provided_without_any_attributes(
 
     assert (
         e.value.args[0]
-        == "Please provide at least one attribute. For example: ...provide.some_attr..."
+        == "Please provide at least one attribute. For example: provide.some_attr"
     )

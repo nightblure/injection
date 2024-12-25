@@ -13,7 +13,7 @@ def _get_value_from_object_by_dotted_path(obj: Any, path: str) -> Any:
 
 
 class ProvidedInstance:
-    def __init__(self, provided: "BaseProvider[Any]"):
+    def __init__(self, provided: "BaseProvider[Any]") -> None:
         self._provided = provided
         self._attrs: List[str] = []
 
@@ -25,7 +25,9 @@ class ProvidedInstance:
         resolved_provider_object = self._provided()
 
         if not self._attrs:
-            msg = "Please provide at least one attribute. For example: ...provide.some_attr..."
+            msg = (
+                "Please provide at least one attribute. For example: provide.some_attr"
+            )
             raise Exception(msg)
 
         attribute_path = ".".join(self._attrs)

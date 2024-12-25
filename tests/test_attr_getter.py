@@ -38,6 +38,7 @@ def test_attr_getter_with_zero_attribute_depth(
     some_settings_provider: Singleton[Settings],
 ) -> None:
     provided = some_settings_provider.provided.some_str_value
+
     assert provided.get_value() == Settings().some_str_value
 
 
@@ -45,6 +46,7 @@ def test_attr_getter_with_more_than_zero_attribute_depth(
     some_settings_provider: Singleton[Settings],
 ) -> None:
     provided = some_settings_provider.provided.nested1_attr.nested2_attr.some_const
+
     assert provided.get_value() == Nested2().some_const
 
 
@@ -76,4 +78,5 @@ def test_nesting_levels(
     setattr(obj_copy, test_field_name, test_value)
 
     attr_value = _get_value_from_object_by_dotted_path(obj, attr_path)
+
     assert attr_value == test_value

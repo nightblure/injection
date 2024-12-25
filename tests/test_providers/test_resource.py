@@ -120,6 +120,7 @@ def test_resource_global_scope(
     assert provider.initialized
     assert provider._context is not None
 
+    assert provider.instance is not None
     assert provider.instance.active
     assert not provider.instance.closed
 
@@ -130,20 +131,22 @@ def test_resource_function_scope(container: Type[Container]) -> None:
     @inject
     def _inner(
         value: Resources = Provide[provider],
-    ) -> None:
+    ) -> Resources:
         assert provider.initialized
         assert provider._context is not None
 
         assert value.active
         assert not value.closed
+        return value
 
-    _inner()
+    instance = _inner()
 
     assert not provider.initialized
     assert provider._context is None
+    assert provider.instance is None
 
-    assert not provider.instance.active
-    assert provider.instance.closed
+    assert not instance.active
+    assert instance.closed
 
 
 async def test_resource_global_scope_async(
@@ -166,6 +169,7 @@ async def test_resource_global_scope_async(
     assert provider.initialized
     assert provider._context is not None
 
+    assert provider.instance is not None
     assert provider.instance.active
     assert not provider.instance.closed
 
@@ -176,20 +180,22 @@ async def test_resource_function_scope_async(container: Type[Container]) -> None
     @inject
     async def _inner(
         value: Resources = Provide[provider],
-    ) -> None:
+    ) -> Resources:
         assert provider.initialized
         assert provider._context is not None
 
         assert value.active
         assert not value.closed
+        return value
 
-    await _inner()
+    instance = await _inner()
 
     assert not provider.initialized
     assert provider._context is None
+    assert provider.instance is None
 
-    assert not provider.instance.active
-    assert provider.instance.closed
+    assert not instance.active
+    assert instance.closed
 
 
 def test_resource_provider_fail_with_unsupported_factory() -> None:
