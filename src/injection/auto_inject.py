@@ -4,7 +4,10 @@ from functools import wraps
 from typing import Any, Callable, Coroutine, Dict, Optional, Type, TypeVar, Union, cast
 
 from injection.base_container import DeclarativeContainer
-from injection.inject import get_related_func_scope_resources
+from injection.inject import (
+    close_related_function_scope_resources_async,
+    close_related_function_scope_resources_sync,
+)
 from injection.provide import Provide
 from injection.providers.base import BaseProvider
 from injection.providers.base_factory import BaseFactoryProvider
@@ -57,32 +60,20 @@ def _get_sync_injected(
             kwargs[param_name] = provider()
 
         result = f(*args, **kwargs)
-
-        function_scope_resources = get_related_func_scope_resources(
-            providers,
-            match_resource_func=lambda p: p.initialized
-            and not p.async_mode
-            and p.function_scope,
-        )
-
-        # close function scope resources
-        for resource_provider in function_scope_resources:
-            if not resource_provider.async_mode:
-                resource_provider.close()
-
+        close_related_function_scope_resources_sync(providers)
         return result
 
     return wrapper
 
 
-def _get_async_injected(  # noqa: C901
+def _get_async_injected(
     *,
     f: Callable[P, Coroutine[Any, Any, T]],
     signature: inspect.Signature,
     target_container: _ContainerType,
 ) -> Callable[P, Coroutine[Any, Any, T]]:
     @wraps(f)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:  # noqa: C901
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         providers = []
 
         for i, (param_name, param) in enumerate(signature.parameters.items()):
@@ -123,19 +114,7 @@ def _get_async_injected(  # noqa: C901
                 kwargs[param_name] = resolved_provide
 
         result = await f(*args, **kwargs)
-
-        function_scope_resources = get_related_func_scope_resources(
-            providers,
-            match_resource_func=lambda p: p.initialized and p.function_scope,
-        )
-
-        # close function scope resources
-        for resource_provider in function_scope_resources:
-            if resource_provider.async_mode:
-                await resource_provider.async_close()
-            else:
-                resource_provider.close()
-
+        await close_related_function_scope_resources_async(providers)
         return result
 
     return wrapper

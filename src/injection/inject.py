@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import sys
 from functools import wraps
@@ -18,32 +19,81 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def get_related_func_scope_resources(
+async def close_related_function_scope_resources_async(
     providers: List[BaseProvider[Any]],
-    *,
-    match_resource_func: Callable[[Resource[Any]], bool],
-) -> List[Resource[Any]]:
-    function_scope_resources: List[Resource[Any]] = []
+) -> None:
+    async_resources = set()
 
     while providers:
         provider = providers.pop()
 
         if (
             isinstance(provider, Resource)
-            and match_resource_func(provider)
-            and provider not in function_scope_resources
+            and provider.initialized
+            and provider.function_scope
         ):
-            function_scope_resources.append(provider)
+            if provider.async_mode:
+                async_resources.add(provider)
+            else:
+                provider.close()
 
         for related_provider in provider.get_related_providers():
             providers.append(related_provider)
 
-            if isinstance(related_provider, Resource) and match_resource_func(
-                related_provider,
-            ):
-                function_scope_resources.append(related_provider)
+            if not isinstance(related_provider, Resource):
+                continue
 
-    return function_scope_resources
+            match_conditions = [
+                related_provider.initialized,
+                related_provider.function_scope,
+            ]
+
+            if not all(match_conditions):
+                continue
+
+            if related_provider.async_mode:
+                async_resources.add(related_provider)
+            else:
+                related_provider.close()
+
+    if len(async_resources) == 0:
+        return None
+
+    await asyncio.gather(
+        *[resource.async_close() for resource in async_resources],
+    )
+
+
+def close_related_function_scope_resources_sync(
+    providers: List[BaseProvider[Any]],
+) -> None:
+    while providers:
+        provider = providers.pop()
+
+        if (
+            isinstance(provider, Resource)
+            and provider.initialized
+            and provider.function_scope
+            and not provider.async_mode
+        ):
+            provider.close()
+
+        for related_provider in provider.get_related_providers():
+            providers.append(related_provider)
+
+            if not isinstance(related_provider, Resource):
+                continue
+
+            match_conditions = [
+                related_provider.initialized,
+                related_provider.function_scope,
+                not related_provider.async_mode,
+            ]
+
+            if not all(match_conditions):
+                continue
+
+            related_provider.close()
 
 
 def _get_async_injected(
@@ -77,19 +127,7 @@ def _get_async_injected(
             kwargs[param_name] = resolved_provide
 
         result = await f(*args, **kwargs)
-
-        function_scope_resources = get_related_func_scope_resources(
-            providers,
-            match_resource_func=lambda p: p.initialized and p.function_scope,
-        )
-
-        # close function scope resources
-        for resource_provider in function_scope_resources:
-            if resource_provider.async_mode:
-                await resource_provider.async_close()
-            else:
-                resource_provider.close()
-
+        await close_related_function_scope_resources_async(providers)
         return result
 
     return wrapper
@@ -117,19 +155,7 @@ def _get_sync_injected(
             kwargs[param_name] = provider()
 
         result = f(*args, **kwargs)
-
-        function_scope_resources = get_related_func_scope_resources(
-            providers,
-            match_resource_func=lambda p: p.initialized
-            and not p.async_mode
-            and p.function_scope,
-        )
-
-        # close function scope resources
-        for resource_provider in function_scope_resources:
-            if not resource_provider.async_mode:
-                resource_provider.close()
-
+        close_related_function_scope_resources_sync(providers)
         return result
 
     return wrapper
