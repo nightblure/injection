@@ -16,7 +16,7 @@ from typing import (
     cast,
 )
 
-from injection.providers.base import BaseProvider
+from injection.providers.base_factory import BaseFactoryProvider
 from injection.resolving import resolve_provider_args, resolve_provider_args_async
 
 if sys.version_info < (3, 10):
@@ -74,7 +74,7 @@ def _create_context_factory(
 _resource_not_initialized_error_msg: Final[str] = "Resource is not initialized"
 
 
-class Resource(BaseProvider[T]):
+class Resource(BaseFactoryProvider[T]):
     def __init__(  # type: ignore[valid-type]
         self,
         factory: Callable[
@@ -88,17 +88,16 @@ class Resource(BaseProvider[T]):
         ],
         *args: P.args,
         function_scope: bool = False,
+        async_mode: Optional[bool] = None,
         **kwargs: P.kwargs,
     ) -> None:
-        super().__init__()
+        super().__init__(factory, *args, **kwargs)  # type: ignore[arg-type]
         self._context_factory, self._async_mode = _create_context_factory(factory)
 
+        if async_mode is not None:
+            self._async_mode = async_mode
+
         self._context: Any = None
-
-        self._args = args
-        self._kwargs = kwargs
-        self._factory = factory
-
         self._initialized = False
         self._instance: Optional[T] = None
         self._function_scope = function_scope
@@ -117,10 +116,6 @@ class Resource(BaseProvider[T]):
         )
         self._context = self._context_factory(*resolved_args, **resolved_kwargs)
 
-    def reset(self) -> None:
-        self._context = None
-        self._initialized = False
-
     @property
     def initialized(self) -> bool:
         return self._initialized
@@ -134,42 +129,42 @@ class Resource(BaseProvider[T]):
         return self._async_mode
 
     @property
-    def instance(self) -> T:
-        return cast(T, self._instance)
+    def instance(self) -> Optional[T]:
+        return self._instance
+
+    def _reset(self) -> None:
+        self._context = None
+        self._instance = None
+        self._initialized = False
 
     def _resolve(self) -> T:
         if self.initialized:
-            return self.instance
+            return cast(T, self.instance)
 
         self.__create_context()
         self._instance = self._context.__enter__()
         self._initialized = True
-        return self.instance
+        return cast(T, self.instance)
 
     def close(self) -> None:
         if not self._initialized:
             raise RuntimeError(_resource_not_initialized_error_msg)
 
         self._context.__exit__(None, None, None)
-        self.reset()
+        self._reset()
 
     async def _async_resolve(self) -> T:
         if self.initialized:
-            return self.instance
+            return cast(T, self.instance)
 
         await self.__create_async_context()
-
-        if self.async_mode:
-            self._instance = await self._context.__aenter__()
-        else:
-            self._instance = self._context.__enter__()
-
+        self._instance = await self._context.__aenter__()
         self._initialized = True
-        return self.instance
+        return cast(T, self.instance)
 
     async def async_close(self) -> None:
         if not self._initialized:
             raise RuntimeError(_resource_not_initialized_error_msg)
 
         await self._context.__aexit__(None, None, None)
-        self.reset()
+        self._reset()

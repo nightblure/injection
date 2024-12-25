@@ -131,10 +131,6 @@ async def nested_coroutine(
     return arg1, arg2, arg3
 
 
-# def _sync_resource_simple() -> Iterator[str]:
-#     yield "sync_resource_simple"
-
-
 class Container(DeclarativeContainer):
     settings = providers.Singleton(Settings)
     redis = providers.Singleton(

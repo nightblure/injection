@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from typing import List
 
 import pytest
 
-from injection import providers
+from injection import DeclarativeContainer, Provide, inject, providers
 
 
 @dataclass
@@ -15,10 +16,20 @@ class SomeClass:
         return cls(field1=field1, field2=field2)
 
 
-def test_singleton_resolving() -> None:
+@pytest.mark.parametrize(
+    "objects_count",
+    [2, 3, 5, 10],
+)
+def test_singleton_resolving(objects_count: int) -> None:
+    object_ids: List[int] = []
     provider = providers.Singleton(SomeClass, field1="value", field2=1)
 
-    assert provider() is provider()
+    for _ in range(objects_count):
+        resolved = provider()
+        object_ids.append(id(resolved))
+
+    assert len(object_ids) == objects_count
+    assert len(set(object_ids)) == 1
 
 
 async def test_singleton_async_resolving() -> None:
@@ -69,7 +80,7 @@ def test_singleton_resolving_with_override_params_not_works_without_reset_cache(
         assert resolved.field2 == 239
 
 
-def test_singleton_reset_smoke() -> None:
+def test_singleton_reset() -> None:
     provider = providers.Singleton(SomeClass, field1="...", field2=-9000)
     obj = provider()
     obj2 = provider()
@@ -80,3 +91,70 @@ def test_singleton_reset_smoke() -> None:
     obj3 = provider()
     assert obj is not obj3
     assert obj2 is not obj3
+
+
+def test_singleton_overriding_with_reset_singletons() -> None:
+    MOCK_REDIS_URL = "redis://mock"  # noqa: N806
+    DEFAULT_REDIS_URL = "redis://default"  # noqa: N806
+
+    @dataclass
+    class Settings:
+        redis_url: str = DEFAULT_REDIS_URL
+
+    class Redis:
+        def __init__(self, url: str):
+            self.url = url
+
+    class DIContainer(DeclarativeContainer):
+        settings = providers.Singleton(Settings)
+        redis = providers.Singleton(Redis, url=settings.provided.redis_url)  # type: ignore[arg-type]
+
+    @inject
+    def func(redis: Redis = Provide[DIContainer.redis]) -> str:
+        return redis.url
+
+    def test_case_1() -> None:
+        DIContainer.settings.override(Settings(redis_url=MOCK_REDIS_URL))
+
+        assert func() == MOCK_REDIS_URL
+
+        DIContainer.settings.reset_override()
+        # DIContainer.redis.reset() # FIX OF ASSERTION ERROR
+
+        assert func() == DEFAULT_REDIS_URL  # ASSERTION ERROR
+
+    def test_case_2() -> None:
+        assert DIContainer.redis().url == DEFAULT_REDIS_URL
+
+        DIContainer.settings.override(Settings(redis_url=MOCK_REDIS_URL))
+        # DIContainer.redis.reset() # FIX OF ASSERTION ERROR
+
+        assert func() == MOCK_REDIS_URL  # ASSERTION ERROR
+
+    def test_case_1_fixed() -> None:
+        DIContainer.settings.override(Settings(redis_url=MOCK_REDIS_URL))
+
+        assert func() == MOCK_REDIS_URL
+
+        DIContainer.settings.reset_override()
+        DIContainer.redis.reset()  # FIX OF ASSERTION ERROR
+
+        assert func() == DEFAULT_REDIS_URL  # OK
+
+    def test_case_2_fixed() -> None:
+        assert DIContainer.redis().url == DEFAULT_REDIS_URL
+
+        with DIContainer.override_providers_kwargs(
+            settings=Settings(redis_url=MOCK_REDIS_URL),
+            reset_singletons=True,
+        ):
+            assert func() == MOCK_REDIS_URL  # OK
+
+    with pytest.raises(AssertionError):
+        test_case_1()
+
+    with pytest.raises(AssertionError):
+        test_case_2()
+
+    test_case_1_fixed()
+    test_case_2_fixed()

@@ -4,7 +4,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from typing import Any, Callable, Dict, Iterator, List, Optional, Type, TypeVar, cast
 
-from injection.inject.exceptions import (
+from injection.exceptions import (
     DuplicatedFactoryTypeAutoInjectionError,
     UnknownProviderTypeAutoInjectionError,
 )
@@ -110,7 +110,7 @@ class DeclarativeContainer:
             provider.reset_override()
 
     @classmethod
-    def resolve_by_type(cls, type_: Type[Any]) -> Any:
+    def get_provider_by_type(cls, type_: Type[Any]) -> BaseProvider[Any]:
         provider_factory_to_providers = defaultdict(list)
 
         for provider in cls.get_providers():
@@ -127,9 +127,14 @@ class DeclarativeContainer:
             provider = cast(BaseFactoryProvider[Any], provider)
 
             if type_ is provider.factory:
-                return provider()
+                return provider
 
         raise UnknownProviderTypeAutoInjectionError(str(type_))
+
+    @classmethod
+    def resolve_by_type(cls, type_: Type[Any]) -> Any:
+        provider = cls.get_provider_by_type(type_)
+        return provider()
 
     @classmethod
     def init_resources(cls) -> None:
@@ -180,39 +185,6 @@ class DeclarativeContainer:
         )
 
     @classmethod
-    async def close_function_scope_async_resources(cls) -> None:
-        await asyncio.gather(
-            *[
-                provider.async_close()
-                for provider in cls.get_resource_providers()
-                if provider.initialized
-                and provider.async_mode
-                and provider.function_scope
-            ],
-        )
-
-    @classmethod
-    def close_function_scope_resources(cls) -> None:
-        for provider in cls.get_resource_providers():
-            if (
-                provider.initialized
-                and provider.function_scope
-                and not provider.async_mode
-            ):
-                provider.close()
-
-    @classmethod
     async def close_all_resources(cls) -> None:
-        resource_providers = cls.get_resource_providers()
-
-        await asyncio.gather(
-            *[
-                provider.async_close()
-                for provider in resource_providers
-                if provider.initialized and provider.async_mode
-            ],
-        )
-
-        for provider in resource_providers:
-            if provider.initialized and not provider.async_mode:
-                provider.close()
+        await cls.close_async_resources()
+        cls.close_resources()

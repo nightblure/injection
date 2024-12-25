@@ -1,7 +1,10 @@
 import sys
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from typing import Any, Generic, Iterator, List, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Iterator, List, TypeVar, cast
+
+if TYPE_CHECKING:
+    pass
 
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
@@ -15,7 +18,9 @@ T = TypeVar("T")
 
 
 class BaseProvider(Generic[T], ABC):
-    def __init__(self) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self._args = args
+        self._kwargs = kwargs
         self._mocks: List[Any] = []
 
     @abstractmethod
@@ -61,3 +66,12 @@ class BaseProvider(Generic[T], ABC):
     def cast(self) -> T:
         """Helps to avoid type checker mistakes"""
         return cast(T, self)
+
+    def get_related_providers(self) -> Iterator["BaseProvider[Any]"]:
+        for arg in self._args:
+            if isinstance(arg, BaseProvider):
+                yield arg
+
+        for arg in self._kwargs.values():
+            if isinstance(arg, BaseProvider):
+                yield arg

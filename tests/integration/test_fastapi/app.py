@@ -4,7 +4,7 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 
 from tests.integration.test_fastapi.handlers import router
-from tests.integration.test_fastapi.sqlalchemy_resource_case import (
+from tests.integration.test_fastapi.sqlalchemy_handlers import (
     router as sqla_router,
 )
 

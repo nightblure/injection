@@ -37,11 +37,13 @@ class BaseFactoryProvider(BaseProvider[T]):
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
-        super().__init__()
-        self._args = args
-        self._kwargs = kwargs
+        super().__init__(*args, **kwargs)
         self._factory = factory
         self._async_mode = _is_factory_async(factory)
+
+    @property
+    def async_mode(self) -> bool:
+        return self._async_mode
 
     @property
     def factory(self) -> Union[Callable[P, T], Callable[P, Awaitable[T]]]:

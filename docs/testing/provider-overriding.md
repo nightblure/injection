@@ -127,7 +127,7 @@ class Settings:
 
 
 class Redis:
-    def __init__(self, url: str):
+    def __init__(self, url: str) -> None:
         self.url = url
 
 
@@ -141,29 +141,31 @@ def func(redis: Redis = Provide[DIContainer.redis]):
     return redis.url
 
 
-def test_case_1():
+def test_case_1() -> None:
     DIContainer.settings.override(Settings(redis_url=MOCK_REDIS_URL))
 
     assert func() == MOCK_REDIS_URL
 
     DIContainer.settings.reset_override()
-    # DIContainer.redis.reset_cache() # FIX OF ASSERTION ERROR
+    # DIContainer.redis.reset() # OK
 
     assert func() == DEFAULT_REDIS_URL  # ASSERTION ERROR
 
 
-def test_case_2():
+def test_case_2() -> None:
     assert DIContainer.redis().url == DEFAULT_REDIS_URL
 
     DIContainer.settings.override(Settings(redis_url=MOCK_REDIS_URL))
-    # DIContainer.redis.reset_cache() # FIX OF ASSERTION ERROR
-
-    redis_url = func()
-    assert redis_url == MOCK_REDIS_URL  # ASSERTION ERROR
-
+    # DIContainer.redis.reset() # OK
+    
+    # Or you can fix like this
+    # with DIContainer.override_providers_kwargs(settings=Settings(redis_url=MOCK_REDIS_URL), reset_singletons=True):
+        # assert func() == MOCK_REDIS_URL  # OK
+    
+    assert func() == MOCK_REDIS_URL  # ASSERTION ERROR
+    
 
 if __name__ == "__main__":
     test_case_1()
     test_case_2()
-
 ```
