@@ -1,18 +1,11 @@
-# FastAPI
-
-## Example with SQLAlchemy and pytest
-```python
 from contextlib import contextmanager
-from random import Random
-from typing import Annotated, Any, Callable, Dict, Iterator
+from typing import Callable, Iterator
 
 import pytest
-from fastapi import Depends, FastAPI
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
-from starlette.testclient import TestClient
 
-from injection import DeclarativeContainer, Provide, inject, providers
+from injection import DeclarativeContainer, providers
 
 
 @contextmanager
@@ -36,7 +29,7 @@ class SomeDAO:
         return data
 
 
-class DIContainer(DeclarativeContainer):
+class SqlaResourceContainer(DeclarativeContainer):
     db_engine = providers.Singleton(
         create_engine,
         url="sqlite:///db.db",
@@ -61,36 +54,6 @@ class DIContainer(DeclarativeContainer):
     some_dao = providers.Factory(SomeDAO, db_session=db_session.cast)
 
 
-SomeDAODependency = Annotated[SomeDAO, Depends(Provide[DIContainer.some_dao])]
-
-app = FastAPI()
-
-
-@app.get("/values/{value}")
-@inject
-async def sqla_resource_handler_async(
-    value: int,
-    some_dao: SomeDAODependency,
-) -> Dict[str, Any]:
-    value = some_dao.get_some_data(num=value)
-    return {"detail": value}
-
-
-@pytest.fixture(scope="session")
-def test_client() -> TestClient:
-    client = TestClient(app)
-    return client
-
-
-def test_sqla_resource(test_client: TestClient) -> None:
-    rnd = Random()
-    random_int = rnd.randint(-(10**6), 10**6)
-
-    response = test_client.get(f"/values/{random_int}")
-
-    assert response.status_code == 200
-    assert not DIContainer.db_session.initialized
-    body = response.json()
-    assert body["detail"] == random_int
-    
-```
+@pytest.fixture
+def sqla_container() -> SqlaResourceContainer:
+    return SqlaResourceContainer()

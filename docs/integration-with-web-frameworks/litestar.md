@@ -7,7 +7,7 @@ make sure that the following points are completed:
 2. added for each injected parameter to the request handler a typing of the form
 `Annotated[<your type>, Dependency(skip_validation=True)]`. `Dependency` is object from `litestar.params`;
 
-3. use the `Provide` marker from the `injection` (not from Litestar) package indicating the provider
+3. use the `Provide` marker from the `injection` (_not from Litestar_) package indicating the provider
 
 ---
 
@@ -15,14 +15,17 @@ make sure that the following points are completed:
 
 ```python3
 from functools import partial
+from random import Random
+from typing import Any, Dict
 from unittest.mock import Mock
-from typing import Annotated
 
-from injection import Provide, inject, DeclarativeContainer, providers
+import pytest
 from litestar import Litestar, get
 from litestar.params import Dependency
 from litestar.testing import TestClient
+from typing_extensions import Annotated
 
+from injection import DeclarativeContainer, Provide, inject, providers
 
 _NoValidationDependency = partial(Dependency, skip_validation=True)
 
@@ -33,7 +36,7 @@ class Redis:
         self.url = url
         self.port = port
 
-    def get(self, key):
+    def get(self, key: Any) -> Any:
         return key
 
 
@@ -47,16 +50,17 @@ class Container(DeclarativeContainer):
 
 
 @get(
-    "/some_resource",
+    "/some_resource/{redis_key:int}",
     status_code=200,
 )
 @inject
 async def litestar_endpoint(
+    redis_key: int,
     num: Annotated[int, _NoValidationDependency()] = Provide[Container.num],
     redis: Annotated[Redis, _NoValidationDependency()] = Provide[Container.redis],
-) -> dict:
-    value = redis.get(800)
-    return {"detail": value, "num2": num}
+) -> Dict[str, Any]:
+    value = redis.get(redis_key)
+    return {"key": value, "num2": num}
 
 
 @get(
@@ -66,7 +70,7 @@ async def litestar_endpoint(
 @inject
 async def litestar_endpoint_object_provider(
     num: Annotated[int, _NoValidationDependency()] = Provide[Container.num],
-) -> dict:
+) -> Dict[str, Any]:
     return {"detail": num}
 
 
@@ -77,17 +81,38 @@ _handlers = [
 
 app = Litestar(route_handlers=_handlers)
 
-# Testing
 
-def test_litestar_overriding():
-    mock_instance = Mock(get=lambda _: 192342526)
-    override_providers = {"redis": mock_instance, "num": -2999999999}
+##################################################### TESTS ############################################################
+@pytest.fixture(scope="session")
+def test_client() -> TestClient[Any]:
+    return TestClient(app=app)
 
-    with TestClient(app=app) as client:
-        with Container.override_providers(override_providers):
-            response = client.get("/some_resource")
+
+def test_num_endpoint(test_client: TestClient[Any]) -> None:
+    response = test_client.get("/num_endpoint")
 
     assert response.status_code == 200
-    assert response.json() == {"detail": 192342526, "num2": -2999999999}
+    assert response.json() == {"detail": 9402}
+
+
+def test_some_resource_endpoint(test_client: TestClient[Any]) -> None:
+    key = Random().randint(0, 100)  # noqa: S311
+
+    response = test_client.get(f"/some_resource/{key}")
+
+    assert response.status_code == 200
+    assert response.json() == {"key": key, "num2": 9402}
+
+
+def test_overriding(test_client: TestClient[Any]) -> None:
+    key = 192342526
+    mock_instance = Mock(get=lambda _: key)
+    override_providers = {"redis": mock_instance, "num": -2999999999}
+
+    with Container.override_providers(override_providers):
+        response = test_client.get(f"/some_resource/{key}")
+
+    assert response.status_code == 200
+    assert response.json() == {"key": key, "num2": -2999999999}
 
 ```

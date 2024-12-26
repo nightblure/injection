@@ -25,10 +25,12 @@ In addition, this will provide an easy migration to the current framework with
 Other features and advantages:
 
 * support **Python 3.8-3.12**;
-* works with **FastAPI, Flask, Litestar** and **Django REST Framework**;
-* dependency injection via `Annotated` in FastAPI;
-* **no third-party dependencies**;
-* **multiple containers**;
-* providers - delegate object creation and lifecycle management to providers;
-* **overriding** dependencies for tests without wiring;
-* **100%** code coverage and very simple code.
+* works with **FastAPI, **Litestar**, Flask** and **Django REST Framework**;
+* support **dependency** **injection** via `Annotated` in `FastAPI`;
+* support **async injections**;
+* support [**auto injection by types**](https://injection.readthedocs.io/latest/injection/auto_injection.html); 
+* [**resources**](https://injection.readthedocs.io/latest/providers/resource.html) with **function scope**;
+* no **wiring**;
+* **overriding** dependencies for testing;
+* **100%** code coverage;
+* the code is fully **typed** and checked with [mypy](https://github.com/python/mypy).
