@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from tests.container_objects import Container
-from tests.integration.test_fastapi.sqlalchemy_handlers import (
+from tests.integration.conftest import (
     SqlaResourceContainer,
 )
 
@@ -82,19 +82,27 @@ def random_int(rnd: Random) -> int:
     return rnd.randint(1, 10**6)
 
 
-def test_sqla_resource_sync_endpoint(test_client: TestClient, random_int: int) -> None:
+def test_sqla_resource_sync_endpoint(
+    test_client: TestClient,
+    random_int: int,
+    sqla_container: SqlaResourceContainer,
+) -> None:
     response = test_client.get(f"/sqlalchemy-resources/sync/{random_int}")
 
     assert response.status_code == 200
-    assert not SqlaResourceContainer.db_session.initialized
+    assert not sqla_container.db_session.initialized
     body = response.json()
     assert isinstance(body["detail"], int)
 
 
-def test_sqla_resource_async_endpoint(test_client: TestClient, random_int: int) -> None:
+def test_sqla_resource_async_endpoint(
+    test_client: TestClient,
+    random_int: int,
+    sqla_container: SqlaResourceContainer,
+) -> None:
     response = test_client.get(f"/sqlalchemy-resources/async/{random_int}")
 
     assert response.status_code == 200
-    assert not SqlaResourceContainer.db_session.initialized
+    assert not sqla_container.db_session.initialized
     body = response.json()
     assert isinstance(body["detail"], int)

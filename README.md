@@ -148,4 +148,5 @@ def test_sqla_resource(test_client: TestClient) -> None:
     assert not DIContainer.db_session.initialized
     body = response.json()
     assert body["detail"] == random_int
+    
 ```
