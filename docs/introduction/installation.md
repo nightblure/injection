@@ -1,6 +1,6 @@
 # Installation
 
-`Injection` works with Python versions 3.8-3.12 and is available on PyPI.
+`Injection` works with Python versions 3.8-3.13 and is available on PyPI.
 To install the latest version you can use pip:
 ```bash
 pip install deps-injection
