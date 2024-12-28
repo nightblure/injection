@@ -24,8 +24,8 @@
 
 ---
 
-Easy dependency injection for all, works with Python 3.8-3.12. Main features and advantages:
-* support **Python 3.8-3.12**;
+Easy dependency injection for all, works with Python 3.8-3.13. Main features and advantages:
+* support **Python 3.8-3.13**;
 * works with **FastAPI, **Litestar**, Flask** and **Django REST Framework**;
 * support **dependency** **injection** via `Annotated` in `FastAPI`;
 * support **async injections**;

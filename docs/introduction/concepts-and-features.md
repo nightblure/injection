@@ -24,7 +24,7 @@ In addition, this will provide an easy migration to the current framework with
 (see [migration from Dependency Injector](https://injection.readthedocs.io/latest/dev/migration-from-dependency-injector.html)).
 Other features and advantages:
 
-* support **Python 3.8-3.12**;
+* support **Python 3.8-3.13**;
 * works with **FastAPI, **Litestar**, Flask** and **Django REST Framework**;
 * support **dependency** **injection** via `Annotated` in `FastAPI`;
 * support **async injections**;
