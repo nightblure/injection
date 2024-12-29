@@ -126,8 +126,10 @@ def _get_async_injected(
 
             kwargs[param_name] = resolved_provide
 
-        result = await f(*args, **kwargs)
-        await close_related_function_scope_resources_async(providers)
+        try:
+            result = await f(*args, **kwargs)
+        finally:
+            await close_related_function_scope_resources_async(providers)
         return result
 
     return wrapper
@@ -154,8 +156,10 @@ def _get_sync_injected(
             providers.append(provider)
             kwargs[param_name] = provider()
 
-        result = f(*args, **kwargs)
-        close_related_function_scope_resources_sync(providers)
+        try:
+            result = f(*args, **kwargs)
+        finally:
+            close_related_function_scope_resources_sync(providers)
         return result
 
     return wrapper
