@@ -562,10 +562,8 @@ wheels = [
 
 [[package]]
 name = "deps-injection"
-version = "1.6.2"
 source = { virtual = "." }
 dependencies = [
-    { name = "hatch" },
     { name = "typing-extensions" },
 ]
 
@@ -598,17 +596,14 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "hatch", specifier = ">=1.13.0" },
-    { name = "typing-extensions", specifier = ">=4.12.2" },
-]
+requires-dist = [{ name = "typing-extensions", specifier = ">=4.12.2" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "djangorestframework" },
     { name = "fastapi" },
     { name = "flask" },
-    { name = "hatch" },
+    { name = "hatch", specifier = ">=1.13.0" },
     { name = "litestar" },
     { name = "mypy", specifier = ">=1.13.0" },
     { name = "myst-parser", specifier = "==3.*" },

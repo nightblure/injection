@@ -19,7 +19,6 @@ classifiers = [
 keywords = ["dependency", "injector", "di", "injection"]
 description = "Easy dependency injection without wiring"
 dependencies = [
-    "hatch>=1.13.0",
     "typing-extensions>=4.12.2",
 ]
 readme = "README.md"
@@ -109,7 +108,7 @@ distribution = false
 [tool.uv]
 package = false
 dev-dependencies = [
-    "hatch",
+    "hatch>=1.13.0",
     "pre-commit",
     "mypy>=1.13.0",
     "setuptools>=75.2.0",
