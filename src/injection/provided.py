@@ -21,6 +21,10 @@ class ProvidedInstance:
         self._attrs.append(attr)
         return self
 
+    def call(self, *args, **kwargs) -> Any:
+        function = self.get_value()
+        return function(*args, **kwargs)
+
     def get_value(self) -> Any:
         resolved_provider_object = self._provided()
 

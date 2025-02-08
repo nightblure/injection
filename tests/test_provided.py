@@ -19,3 +19,11 @@ def test_provider_resolving_fail_on_provided_without_any_attributes(
         e.value.args[0]
         == "Please provide at least one attribute. For example: provide.some_attr"
     )
+
+def test_provided_instance_attribute_call(container: Type[Container]) -> None:
+    provided = ProvidedInstance(container.some_service)
+
+    provided_property = provided.do_smth
+
+    assert provided_property.call() == 'Doing smth 2'
+    assert provided_property.get_value()() == 'Doing smth 2'
