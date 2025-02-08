@@ -21,7 +21,7 @@ class ProvidedInstance:
         self._attrs.append(attr)
         return self
 
-    def call(self, *args, **kwargs) -> Any:
+    def call(self, *args: Any, **kwargs: Any) -> Any:
         function = self.get_value()
         return function(*args, **kwargs)
 
