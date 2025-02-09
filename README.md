@@ -16,7 +16,6 @@
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![MyPy Strict](https://img.shields.io/badge/mypy-strict-blue)](https://mypy.readthedocs.io/en/stable/getting_started.html#strict-mode-and-configuration)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/1da49eb0b28eacae4624/maintainability)](https://codeclimate.com/github/nightblure/injection/maintainability)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/nightblure/injection/total?color=102255102&label=Total%20downloads)
 
 ![PyPI - Month Downloads](https://img.shields.io/pypi/dm/deps-injection?color=102255102&label=Month%20downloads)
