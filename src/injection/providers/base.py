@@ -1,10 +1,7 @@
 import sys
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Generic, Iterator, List, TypeVar, cast
-
-if TYPE_CHECKING:
-    pass
+from typing import Any, Generic, Iterator, List, TypeVar, cast
 
 if sys.version_info < (3, 10):
     from typing_extensions import ParamSpec
@@ -59,7 +56,6 @@ class BaseProvider(Generic[T], ABC):
     def reset_override(self) -> None:
         if not self._mocks:
             return
-
         self._mocks.pop(-1)
 
     @property
@@ -67,7 +63,7 @@ class BaseProvider(Generic[T], ABC):
         """Helps to avoid type checker mistakes"""
         return cast(T, self)
 
-    def get_related_providers(self) -> Iterator["BaseProvider[Any]"]:
+    def get_dependencies(self) -> Iterator["BaseProvider[Any]"]:
         for arg in self._args:
             if isinstance(arg, BaseProvider):
                 yield arg

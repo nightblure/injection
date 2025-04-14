@@ -108,7 +108,7 @@ def _get_async_injected(
                 continue
 
             if isinstance(provider, BaseFactoryProvider):
-                if provider.async_mode:
+                if provider.should_be_async_resolved:
                     resolved_provide = await provider.async_resolve()
                 else:
                     resolved_provide = provider()

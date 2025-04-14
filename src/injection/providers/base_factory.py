@@ -21,7 +21,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def _is_factory_async(factory: Callable[P, T]) -> bool:
+def _is_async_factory(factory: Callable[P, T]) -> bool:
     return any(
         [
             inspect.iscoroutinefunction(factory),
@@ -39,11 +39,11 @@ class BaseFactoryProvider(BaseProvider[T]):
     ) -> None:
         super().__init__(*args, **kwargs)
         self._factory = factory
-        self._async_mode = _is_factory_async(factory)
+        self._is_async_factory = _is_async_factory(factory)
 
     @property
-    def async_mode(self) -> bool:
-        return self._async_mode
+    def is_async_factory(self) -> bool:
+        return self._is_async_factory
 
     @property
     def factory(self) -> Union[Callable[P, T], Callable[P, Awaitable[T]]]:
@@ -60,7 +60,7 @@ class BaseFactoryProvider(BaseProvider[T]):
         )
         resolved_kwargs.update(kwargs)
 
-        if self._async_mode:
+        if self._is_async_factory:
             instance = await self._factory(*resolved_args, *args, **resolved_kwargs)  # type: ignore[misc]
         else:
             instance = self._factory(*resolved_args, *args, **resolved_kwargs)
@@ -79,3 +79,19 @@ class BaseFactoryProvider(BaseProvider[T]):
         resolved_kwargs.update(kwargs)
         instance = self._factory(*resolved_args, *args, **resolved_kwargs)
         return cast(T, instance)
+
+    def has_async_dependencies(self) -> bool:
+        dependencies = self.get_dependencies()
+
+        for provider in dependencies:
+            if not isinstance(provider, BaseFactoryProvider):
+                continue
+
+            if provider._is_async_factory:
+                return True
+
+        return False
+
+    @property
+    def should_be_async_resolved(self) -> bool:
+        return self._is_async_factory or self.has_async_dependencies()

@@ -197,7 +197,6 @@ async def test_auto_inject_with_async_func_scope_resource() -> None:
             a=1199,
             b="bbbb",
             function_scope=True,
-            async_mode=True,
         )
 
     provider = _Container.async_func_scope_resource
@@ -232,14 +231,12 @@ async def test_auto_inject_mixed_async() -> None:
             a=1199,
             b="bbbb",
             function_scope=True,
-            async_mode=True,
         )
         async_resource_copy = providers.Resource(
             ResourceAsync,
             a=1199,
             b="bbbb",
             function_scope=False,
-            async_mode=True,
         )
         func_scope_resource = providers.Resource(
             _sync_resource,
@@ -293,7 +290,6 @@ async def test_auto_inject_mixed_sync() -> None:
             a=1199,
             b="bbbb",
             function_scope=False,
-            async_mode=True,
         )
 
     provider = _Container.func_scope_resource

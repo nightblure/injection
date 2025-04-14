@@ -32,12 +32,12 @@ async def close_related_function_scope_resources_async(
             and provider.initialized
             and provider.function_scope
         ):
-            if provider.async_mode:
+            if provider.is_async_factory:
                 async_resources.add(provider)
             else:
                 provider.close()
 
-        for related_provider in provider.get_related_providers():
+        for related_provider in provider.get_dependencies():
             providers.append(related_provider)
 
             if not isinstance(related_provider, Resource):
@@ -51,7 +51,7 @@ async def close_related_function_scope_resources_async(
             if not all(match_conditions):
                 continue
 
-            if related_provider.async_mode:
+            if related_provider.is_async_factory:
                 async_resources.add(related_provider)
             else:
                 related_provider.close()
@@ -74,11 +74,11 @@ def close_related_function_scope_resources_sync(
             isinstance(provider, Resource)
             and provider.initialized
             and provider.function_scope
-            and not provider.async_mode
+            and not provider.is_async_factory
         ):
             provider.close()
 
-        for related_provider in provider.get_related_providers():
+        for related_provider in provider.get_dependencies():
             providers.append(related_provider)
 
             if not isinstance(related_provider, Resource):
@@ -87,7 +87,7 @@ def close_related_function_scope_resources_sync(
             match_conditions = [
                 related_provider.initialized,
                 related_provider.function_scope,
-                not related_provider.async_mode,
+                not related_provider.is_async_factory,
             ]
 
             if not all(match_conditions):
@@ -117,7 +117,7 @@ def _get_async_injected(
             providers.append(provider)
 
             if isinstance(provider, BaseFactoryProvider):
-                if provider.async_mode:
+                if provider.should_be_async_resolved:
                     resolved_provide = await provider.async_resolve()
                 else:
                     resolved_provide = provider()

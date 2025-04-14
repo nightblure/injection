@@ -88,15 +88,10 @@ class Resource(BaseFactoryProvider[T]):
         ],
         *args: P.args,
         function_scope: bool = False,
-        async_mode: Optional[bool] = None,
         **kwargs: P.kwargs,
     ) -> None:
         super().__init__(factory, *args, **kwargs)  # type: ignore[arg-type]
-        self._context_factory, self._async_mode = _create_context_factory(factory)
-
-        if async_mode is not None:
-            self._async_mode = async_mode
-
+        self._context_factory, self._is_async_factory = _create_context_factory(factory)
         self._context: Any = None
         self._initialized = False
         self._instance: Optional[T] = None
@@ -123,10 +118,6 @@ class Resource(BaseFactoryProvider[T]):
     @property
     def function_scope(self) -> bool:
         return self._function_scope
-
-    @property
-    def async_mode(self) -> bool:
-        return self._async_mode
 
     @property
     def instance(self) -> Optional[T]:
