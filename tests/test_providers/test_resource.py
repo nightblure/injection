@@ -20,7 +20,7 @@ from tests.container_objects import Container, Resources
 def test_resource_sync_generator() -> None:
     provider = Resource(Resources().sync_generator)
 
-    assert not provider.async_mode
+    assert not provider.should_be_async_resolved
     assert not provider.initialized
 
     resource_instance = provider()
@@ -43,7 +43,7 @@ def test_resource_sync_generator() -> None:
 async def test_resource_async_generator() -> None:
     provider = Resource(Resources().async_generator)
 
-    assert provider.async_mode
+    assert provider.should_be_async_resolved
     assert not provider.initialized
 
     resource_instance = await provider.async_resolve()
@@ -65,7 +65,7 @@ async def test_resource_async_generator() -> None:
 def test_resource_sync_ctx_manager() -> None:
     provider = Resource(Resources().sync_ctx)
 
-    assert not provider.async_mode
+    assert not provider.should_be_async_resolved
     assert not provider.initialized
 
     resource_instance = provider()
@@ -88,7 +88,7 @@ def test_resource_sync_ctx_manager() -> None:
 async def test_resource_async_ctx_manager() -> None:
     provider = Resource(Resources().async_ctx)
 
-    assert provider.async_mode
+    assert provider.should_be_async_resolved
     assert not provider.initialized
 
     resource_instance = await provider.async_resolve()

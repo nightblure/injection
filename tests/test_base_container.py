@@ -135,28 +135,32 @@ def test_resolve_by_type_expect_error_on_duplicated_provider_types(
 def test_sync_resources_lifecycle(container: Type[Container]) -> None:
     container.init_resources()
 
-    for provider in container.get_resource_providers():
-        if not provider.async_mode:
-            assert provider.initialized
+    assert all(
+        provider.initialized
+        for provider in container.get_resource_providers()
+        if not provider.should_be_async_resolved
+    )
 
     container.close_resources()
 
-    for provider in container.get_resource_providers():
-        if not provider.async_mode:
-            assert not provider.initialized
+    assert all(
+        not provider.initialized
+        for provider in container.get_resource_providers()
+        if not provider.should_be_async_resolved
+    )
 
 
 async def test_async_resources_lifecycle(container: Type[Container]) -> None:
     await container.init_resources_async()
 
     for provider in container.get_resource_providers():
-        if provider.async_mode:
+        if provider.should_be_async_resolved:
             assert provider.initialized
 
     await container.close_async_resources()
 
     for provider in container.get_resource_providers():
-        if provider.async_mode:
+        if provider.should_be_async_resolved:
             assert not provider.initialized
 
 

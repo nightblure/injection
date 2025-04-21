@@ -139,7 +139,7 @@ class DeclarativeContainer:
     @classmethod
     def init_resources(cls) -> None:
         for provider in cls.get_resource_providers():
-            if not provider.async_mode:
+            if not provider.is_async_factory:
                 provider()
 
     @classmethod
@@ -148,7 +148,7 @@ class DeclarativeContainer:
             *[
                 provider.async_resolve()
                 for provider in cls.get_resource_providers()
-                if provider.async_mode
+                if provider.should_be_async_resolved
             ],
         )
 
@@ -160,18 +160,18 @@ class DeclarativeContainer:
             *[
                 provider.async_resolve()
                 for provider in resource_providers
-                if provider.async_mode
+                if provider.should_be_async_resolved
             ],
         )
 
         for provider in resource_providers:
-            if not provider.async_mode:
+            if not provider.is_async_factory:
                 provider()
 
     @classmethod
     def close_resources(cls) -> None:
         for provider in cls.get_resource_providers():
-            if provider.initialized and not provider.async_mode:
+            if provider.initialized and not provider.is_async_factory:
                 provider.close()
 
     @classmethod
@@ -180,7 +180,7 @@ class DeclarativeContainer:
             *[
                 provider.async_close()
                 for provider in cls.get_resource_providers()
-                if provider.initialized and provider.async_mode
+                if provider.initialized and provider.is_async_factory
             ],
         )
 

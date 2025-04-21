@@ -17,7 +17,6 @@
 [![MyPy Strict](https://img.shields.io/badge/mypy-strict-blue)](https://mypy.readthedocs.io/en/stable/getting_started.html#strict-mode-and-configuration)
 
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/nightblure/injection/total?color=102255102&label=Total%20downloads)
-
 ![PyPI - Month Downloads](https://img.shields.io/pypi/dm/deps-injection?color=102255102&label=Month%20downloads)
 ![GitHub Repo stars](https://img.shields.io/github/stars/nightblure/injection)
 
@@ -55,7 +54,7 @@ pip install deps-injection
 | [Litestar](https://github.com/litestar-org/litestar)                     |                 ✅                 |          ✅           |                      ➖                      |                           ➖                            |
 
 
-## Quickstart with FastAPI, SQLAlchemy and pytest
+## Quickstart with FastAPI, SQLAlchemy and pytest (sync sqlite)
 ```python3
 from contextlib import contextmanager
 from random import Random
@@ -147,5 +146,100 @@ def test_sqla_resource(test_client: TestClient) -> None:
     assert not DIContainer.db_session.initialized
     body = response.json()
     assert body["detail"] == random_int
-    
+
+```
+
+## Quickstart with FastAPI, SQLAlchemy and pytest (async sqlite)
+```python
+from contextlib import asynccontextmanager
+from random import Random
+from typing import Annotated, Any, Callable, Dict, AsyncIterator
+
+import pytest
+from fastapi import Depends, FastAPI
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from starlette.testclient import TestClient
+
+from injection import DeclarativeContainer, Provide, inject, providers
+
+
+@asynccontextmanager
+async def db_session_resource(session_factory: Callable[..., AsyncSession]) -> AsyncIterator[AsyncSession]:
+    session = session_factory()
+    try:
+        yield session
+    except Exception:
+        await session.rollback()
+    finally:
+        await session.close()
+
+
+class SomeDAO:
+    def __init__(self, db_session: AsyncSession) -> None:
+        self.db_session = db_session
+
+    async def get_some_data(self, num: int) -> int:
+        stmt = text("SELECT :num").bindparams(num=num)
+        result = await self.db_session.execute(stmt)
+        data: int = result.scalar_one()
+        return data
+
+
+class DIContainer(DeclarativeContainer):
+    # need to install aiosqlite and greenlet
+    db_engine = providers.Singleton(
+        create_async_engine,
+        url="sqlite+aiosqlite:///db.db",
+        pool_pre_ping=False,
+    )
+
+    session_factory = providers.Singleton(
+        async_sessionmaker,
+        db_engine.cast,
+        autoflush=False,
+        autocommit=False,
+    )
+
+    db_session = providers.Resource(
+        db_session_resource,
+        session_factory=session_factory.cast,
+        function_scope=True,
+    )
+
+    some_dao = providers.Factory(SomeDAO, db_session=db_session.cast)
+
+
+SomeDAODependency = Annotated[SomeDAO, Depends(Provide[DIContainer.some_dao])]
+
+app = FastAPI()
+
+
+@app.get("/values/{value}")
+@inject
+async def sqla_resource_handler_async(
+        value: int,
+        some_dao: SomeDAODependency,
+) -> Dict[str, Any]:
+    value = await some_dao.get_some_data(num=value)
+    return {"detail": value}
+
+
+@pytest.fixture(scope="session")
+def test_client() -> TestClient:
+    client = TestClient(app)
+    return client
+
+
+def test_async_sqla_resource(test_client: TestClient) -> None:
+    rnd = Random()
+    random_int = rnd.randint(-(10 ** 6), 10 ** 6)
+
+    response = test_client.get(f"/values/{random_int}")
+
+    assert response.status_code == 200
+    assert not DIContainer.db_session.initialized
+    body = response.json()
+    assert body["detail"] == random_int
+
 ```
