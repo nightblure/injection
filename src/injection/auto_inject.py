@@ -85,35 +85,34 @@ def _get_async_injected(
             value_or_provide = kwargs.get(param_name, param.default)
             provider: Optional[BaseProvider[Any]] = None
 
-            if isinstance(value_or_provide, Provide):
-                provider = value_or_provide.provider
-
             is_parameter_for_autoinject = (
                 param.annotation is not param.empty and param.default is param.empty
             )
 
             if is_parameter_for_autoinject:
                 provider = target_container.get_provider_by_type(param.annotation)
+            elif isinstance(value_or_provide, Provide):
+                provider = value_or_provide.provider
 
             if provider is None:
                 continue
 
             providers.append(provider)
 
-            if is_parameter_for_autoinject or not isinstance(
-                provider,
-                BaseFactoryProvider,
+            resolved = False
+            resolved_provide = None
+
+            if (
+                isinstance(provider, BaseFactoryProvider)
+                and provider.should_be_async_resolved
             ):
-                kwargs[param_name] = provider()
-                continue
+                resolved_provide = await provider.async_resolve()
+                resolved = True
 
-            if isinstance(provider, BaseFactoryProvider):
-                if provider.should_be_async_resolved:
-                    resolved_provide = await provider.async_resolve()
-                else:
-                    resolved_provide = provider()
+            if not resolved:
+                resolved_provide = provider()
 
-                kwargs[param_name] = resolved_provide
+            kwargs[param_name] = resolved_provide
 
         try:
             result = await f(*args, **kwargs)

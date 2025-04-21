@@ -318,3 +318,28 @@ async def test_auto_inject_mixed_sync() -> None:
     assert not provider.initialized
     assert provider.instance is None
     assert _Container.sync_resource_copy.initialized
+
+
+async def test_auto_inject_sync_provider_with_async_dependency() -> None:
+    """Tests that sync provider should be resolved as async provider because has async dependency"""
+
+    async def _async_dep() -> int:
+        return 3
+
+    class TestClass:
+        def __init__(self, value: int) -> None:
+            self.value = value
+
+        def increase_value_by_ten(self) -> int:
+            return self.value + 10
+
+    class _Container(DeclarativeContainer):
+        async_dependency = providers.Coroutine(_async_dep)
+        provider = providers.Factory(TestClass, value=async_dependency.cast)
+
+    @auto_inject(target_container=_Container)
+    async def _func(value: TestClass) -> int:
+        return value.increase_value_by_ten()
+
+    result = await _func()  # type: ignore[call-arg]
+    assert result == 13
